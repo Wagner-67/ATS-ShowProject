@@ -1,0 +1,60 @@
+services:
+    web:
+        build: .
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+        ports:
+            - "8080:80"
+        depends_on:
+            - db
+        environment:
+            APACHE_DOCUMENT_ROOT: /var/www/html/public
+
+    worker:
+        build: .
+        working_dir: /var/www/html
+        command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
+        restart: unless-stopped
+        depends_on:
+            - db
+        volumes:
+            - ./:/var/www/html
+
+    frontend:                          
+        image: node:20-alpine
+        working_dir: /app
+        volumes:
+            - ./frontend:/app
+            - /app/node_modules        
+        ports:
+            - "5173:5173"              
+        command: sh -c "npm install && npm run dev -- --host"
+        environment:
+            VITE_API_URL: http://localhost:8080
+
+    db:
+        image: mariadb:10.4.32
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: e-commerce-project
+            MYSQL_USER: symfony
+            MYSQL_PASSWORD: symfony
+        ports:
+            - "3307:3306"
+        volumes:
+            - db_data:/var/lib/mysql
+
+    phpmyadmin:
+        image: arm64v8/phpmyadmin
+        restart: always
+        ports:
+            - "8081:80"
+        environment:
+            PMA_HOST: db
+            MYSQL_ROOT_PASSWORD: root
+            UPLOAD_LIMIT: 256M
+
+volumes:
+    db_data:
