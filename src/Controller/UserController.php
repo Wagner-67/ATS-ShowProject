@@ -53,8 +53,13 @@ final class UserController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function me(): JsonResponse
     {
+        $user = $this->getUser();
+
+        $type = $user->getType();
+
         return $this->json([
-            'user' => 'logged in'
+            'user' => 'logged in',
+            'type' => $type?->value,
         ]);
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Entity;
 
+use App\Enum\ProfileType;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
@@ -41,11 +43,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
+    #[ORM\Column(enumType: ProfileType::class)]
+    private ?ProfileType $type = null;
+
+    /**
+     * @var Collection<int, Company>
+     */
+    #[ORM\OneToMany(targetEntity: Company::class, mappedBy: 'user')]
+    private Collection $companies;
+
     public function __construct()
     {
         $this->userId = Uuid::v4()->toRfc4122();
         $this->roles = ['ROLE_USER'];
         $this->documents = new ArrayCollection();
+        $this->companies = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -153,5 +165,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUserIdentifier(): string
     {
         return $this->email;
+    }
+
+    public function getType(): ?ProfileType
+    {
+        return $this->type;
+    }
+
+    public function setType(ProfileType $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Company>
+     */
+    public function getCompanies(): Collection
+    {
+        return $this->companies;
+    }
+
+    public function addCompany(Company $company): static
+    {
+        if (!$this->companies->contains($company)) {
+            $this->companies->add($company);
+            $company->setUser($this);  // Jetzt korrekt
+        }
+        return $this;
+    }
+
+    public function removeCompany(Company $company): static
+    {
+        if ($this->companies->removeElement($company)) {
+            // set the owning side to null (unless already changed)
+            if ($company->getUser() === $this) {
+                $company->setUser(null);
+            }
+        }
+
+        return $this;
     }
 }

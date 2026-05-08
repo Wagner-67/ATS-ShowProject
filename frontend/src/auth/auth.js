@@ -18,7 +18,7 @@ export async function login(username, password) {
   const res = await fetch(`/api/login_check`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }), // oder email testen!
+    body: JSON.stringify({ username, password }),
   });
 
   const text = await res.text();
@@ -39,19 +39,40 @@ export async function login(username, password) {
 }
 
 export async function logout() {
-  await fetch(`${BASE_URL}/api/token/invalidate`, {
-    method: "POST",
-    credentials: "include",
-  });
+  try {
+    const token = localStorage.getItem("token");
+    
+    const response = await fetch("/api/token/invalidate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      credentials: "include"
+    });
 
-  localStorage.removeItem("token");
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    
+    if (!response.ok) {
+      console.warn("Token invalidation failed but local data cleared");
+    }
+    
+    return true;
+  } catch (err) {
+    console.error("Logout error:", err);
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    return false;
+  }
 }
 
-export async function register(email, password, confirmPassword) {
+export async function register(email, password, confirmPassword, type) {
   const res = await fetch(`${BASE_URL}/api/user`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, confirmPassword }),
+    body: JSON.stringify({ email, password, confirmPassword, type }),
   });
 
   const data = await res.json().catch(() => null);

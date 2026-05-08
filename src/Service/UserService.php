@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\User;
+use App\Enum\ProfileType;
 use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
@@ -41,6 +42,20 @@ final class UserService
             ];
         }
 
+        if (($data['type'])) {
+            if (!in_array($data['type'], ['company', 'applicant'])) {
+                return [
+                    'status' => 400,
+                    'body' => ['error' => 'Invalid profile type. Must be "company" or "applicant".']
+                ];
+            }
+        } else {
+            return [
+                'status' => 400,
+                'body' => ['error' => 'Profile type is required.']
+            ];
+        }
+
         $existingUser = $this->em->getRepository(User::class)->findOneBy(['email' => $data['email']]);
         if ($existingUser) {
             return [
@@ -52,6 +67,7 @@ final class UserService
         $user = new User();
         $user->setEmail($data['email']);
         $user->setPassword($data['password']);
+        $user->setType(ProfileType::from($data['type']));
 
         $violations = $this->validator->validate($user);
         if (count($violations) > 0) {
