@@ -47,9 +47,10 @@ security:
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/api/search$, roles: PUBLIC_ACCESS , methods: [GET] }
         - { path: ^/api/user$, roles: ROLE_USER, methods: [GET] }
-        - { path: ^/api/user, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
-        - { path: ^/api/login_check$, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [POST] }
+        - { path: ^/api/user, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: ^/api/login_check$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/company$, roles: ROLE_USER}
 
 when@test:
