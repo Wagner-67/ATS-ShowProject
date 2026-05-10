@@ -4,6 +4,7 @@ services:
         working_dir: /var/www/html
         volumes:
             - ./:/var/www/html
+            - ./php-uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
         ports:
             - "8080:80"
         depends_on:
@@ -20,6 +21,7 @@ services:
             - db
         volumes:
             - ./:/var/www/html
+            - ./php-uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
 
     frontend:                          
         image: node:20-alpine

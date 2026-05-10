@@ -30,27 +30,10 @@ final class SearchController extends AbstractController
         SearchService $searchService
     ): Response
     {
-        try {
-            $data = json_decode($request->getContent(), true);
-            
-            if ($data === null && !empty($request->getContent())) {
-                return $this->json([
-                    'error' => 'Invalid JSON format'
-                ], Response::HTTP_BAD_REQUEST);
-            }
+        $data = json_decode($request->getContent(), true);
 
-            if (empty($data)) {
-                $data = [];
-            }
-            
-            $result = $searchService->searchApplications($data);
+        $result = $searchService->searchApplications($data);
 
-            return $this->json($result['body'], $result['status']);
-            
-        } catch (\Exception $e) {
-            return $this->json([
-                'error' => $e->getMessage()
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
+        return $this->json($result['body'], $result['status']);
     }
 }
