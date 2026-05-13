@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Enum\Salutation;
+use App\Enum\StatusType;
 use App\Repository\ApplicationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,8 +20,8 @@ class Application
     #[ORM\ManyToOne(inversedBy: 'applications')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'applications')]
-    private ?Company $company = null;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $applicationId = null;
 
     #[ORM\OneToMany(mappedBy: 'application', targetEntity: UserPdfs::class)]
     private Collection $documents;
@@ -49,6 +50,9 @@ class Application
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
+    #[ORM\Column(type: 'string', length: 20, enumType: StatusType::class)]
+    private ?StatusType $status = StatusType::PENDING;
+
     public function __construct()
     {
         $this->documents = new ArrayCollection();
@@ -59,8 +63,8 @@ class Application
     public function getUser(): ?User { return $this->user; }
     public function setUser(?User $user): static { $this->user = $user; return $this; }
 
-    public function getCompany(): ?Company { return $this->company; }
-    public function setCompany(?Company $company): static { $this->company = $company; return $this; }
+    public function getApplicationId(): ?string { return $this->applicationId; }
+    public function setApplicationId(?string $applicationId): static { $this->applicationId = $applicationId; return $this; }
 
     public function getDocuments(): Collection { return $this->documents; }
 
@@ -94,6 +98,15 @@ class Application
 
     public function getCity(): ?string { return $this->city; }
     public function setCity(string $city): static { $this->city = $city; return $this; }
+
+    public function getStatus(): ?StatusType { return $this->status; }
+    public function setStatus(StatusType|string|null $status): static
+    {        if (is_string($status)) {
+            $status = StatusType::tryFrom($status);
+        }
+        $this->status = $status;
+        return $this;
+    }
 
     public function addDocument(UserPdfs $document): static
     {

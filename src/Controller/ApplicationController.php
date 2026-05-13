@@ -39,10 +39,7 @@ final class ApplicationController extends AbstractController
             return $file !== null;
         });
         
-        $user = null;
-        if ($this->isGranted('ROLE_USER')) {
-            $user = $this->getUser();
-        }
+        $user = $this->getUser();
         
         $result = $applicationService->createApplication($data, $user, $id, $files);
         
@@ -71,8 +68,8 @@ final class ApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function delete(int $id, ApplicationService $applicationService): JsonResponse
     {
-        $result = $applicationService->deleteApplication($id, $this->getUser());
-
+        $result = $applicationService->deleteApplicationById($id, $this->getUser());
+        
         return new JsonResponse($result['body'], $result['status']);
     }
 }

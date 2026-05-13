@@ -5,9 +5,13 @@ import "./CreateJobModal.css";
 
 export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
   const [form, setForm] = useState({
+    title: "",
     companyName: "",
     companySector: "",
-    companyLocation: "",
+    street: "",
+    houseNumber: "",
+    city: "",
+    postalCode: "",
     jobName: "",
     description: ""
   });
@@ -17,21 +21,29 @@ export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
 
   const isEditing = !!editData;
 
-  // Formular mit editData füllen wenn vorhanden
+  // Fill form with editData when available
   useEffect(() => {
     if (editData) {
       setForm({
+        title: editData.title || "",
         companyName: editData.companyName || "",
         companySector: editData.companySector || "",
-        companyLocation: editData.companyLocation || "",
+        street: editData.street || "",
+        houseNumber: editData.houseNumber || "",
+        city: editData.city || "",
+        postalCode: editData.postalCode || "",
         jobName: editData.jobName || "",
         description: editData.description || ""
       });
     } else if (open) {
       setForm({
+        title: "",
         companyName: "",
         companySector: "",
-        companyLocation: "",
+        street: "",
+        houseNumber: "",
+        city: "",
+        postalCode: "",
         jobName: "",
         description: ""
       });
@@ -70,6 +82,13 @@ export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
         <h2>{isEditing ? "Job bearbeiten" : "Job erstellen"}</h2>
 
         <input
+          name="title"
+          placeholder="Title"
+          value={form.title}
+          onChange={handleChange}
+        />
+
+        <input
           name="companyName"
           placeholder="Company Name"
           value={form.companyName}
@@ -84,9 +103,34 @@ export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
         />
 
         <input
-          name="companyLocation"
-          placeholder="Location"
-          value={form.companyLocation}
+          name="street"
+          placeholder="Street"
+          value={form.street}
+          onChange={handleChange}
+        />
+
+        <div className="address-row">
+          <input
+            name="houseNumber"
+            placeholder="House Number"
+            value={form.houseNumber}
+            onChange={handleChange}
+            className="house-number"
+          />
+
+          <input
+            name="postalCode"
+            placeholder="Postal Code"
+            value={form.postalCode}
+            onChange={handleChange}
+            className="postal-code"
+          />
+        </div>
+
+        <input
+          name="city"
+          placeholder="City"
+          value={form.city}
           onChange={handleChange}
         />
 

@@ -6,9 +6,11 @@ use App\Entity\Application;
 use App\Entity\Company;
 use App\Entity\User;
 use App\Entity\UserPdfs;
+use App\Event\ApplicationSubmitEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class ApplicationService
 {
@@ -20,6 +22,7 @@ final class ApplicationService
     public function __construct(
         private EntityManagerInterface $em,
         private ValidatorInterface $validator,
+        private EventDispatcherInterface $eventDispatcher,
     ) {
         $this->uploadDir = __DIR__ . '/../../public/uploads';
     }
@@ -52,6 +55,7 @@ final class ApplicationService
         $application->setStreet($data['street'] ?? null);
         $application->setHouseNumber($data['houseNumber'] ?? null);
         $application->setCity($data['city'] ?? null);
+        $application->setApplicationId($companyApplicationId);
 
         if ($user) {
             $application->setUser($user);
@@ -94,11 +98,16 @@ final class ApplicationService
         
         $this->em->flush();
 
+        $this->eventDispatcher->dispatch(
+            new ApplicationSubmitEvent($user, $application)
+        );
+
         return [
             'status' => 201,
             'body' => [
                 'message' => 'Application created successfully.',
                 'applicationId' => $application->getId(),
+                'status' => $application->getStatus()?->value,
                 'uploadedFiles' => count($uploadedDocuments),
                 'files' => array_map(function(UserPdfs $doc) {
                     return [
@@ -123,14 +132,14 @@ final class ApplicationService
             }
         }
 
-        // Capture these BEFORE move(), as the temp file is gone afterward
         $originalFileName = $file->getClientOriginalName();
         $mimeType = $file->getClientMimeType();
         $fileSize = $file->getSize();
 
         $file->move($this->uploadDir, $uniqueFileName);
 
-        $filePath = $this->uploadDir . '/' . $uniqueFileName;
+
+        $filePath = '/uploads/' . $uniqueFileName; 
 
         $document = new UserPdfs();
         $document->setFileName($originalFileName);
@@ -199,6 +208,7 @@ final class ApplicationService
                 'firstname' => $app->getFirstname(),
                 'lastname' => $app->getLastname(),
                 'email' => $app->getEmail(),
+                'status' => $app->getStatus()?->value,
                 'documents' => array_map(function(UserPdfs $doc) {
                     return [
                         'fileName' => $doc->getFileName(),
@@ -273,7 +283,7 @@ final class ApplicationService
 
     private function formatApplicationData(Application $application): array
     {
-        return [
+        $data = [
             'id' => $application->getId(),
             'salutation' => $application->getSalutation()?->value,
             'firstname' => $application->getFirstname(),
@@ -283,8 +293,10 @@ final class ApplicationService
             'street' => $application->getStreet(),
             'houseNumber' => $application->getHouseNumber(),
             'city' => $application->getCity(),
+            'status' => $application->getStatus()?->value,
             'documents' => array_map(function($doc) {
                 return [
+                    'id' => $doc->getId(),
                     'fileName' => $doc->getFileName(),
                     'filePath' => $doc->getFilePath(),
                     'mimeType' => $doc->getMimeType(),
@@ -293,5 +305,30 @@ final class ApplicationService
                 ];
             }, $application->getDocuments()->toArray())
         ];
+
+        $company = $this->em->getRepository(Company::class)->findOneBy([
+            'applicationId' => $application->getApplicationId()
+        ]);
+        
+        if ($company) {
+            $data['jobName'] = $company->getJobName();
+            $data['companyName'] = $company->getCompanyName();
+        }
+        
+        return $data;
+    }
+
+    public function deleteApplicationById(int $applicationId, ?User $user = null): array
+    {
+        $application = $this->em->getRepository(Application::class)->find($applicationId);
+        
+        if (!$application) {
+            return [
+                'status' => 404,
+                'body' => ['error' => 'Application not found']
+            ];
+        }
+        
+        return $this->deleteApplication($application, $user);
     }
 }

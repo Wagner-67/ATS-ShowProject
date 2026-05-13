@@ -33,24 +33,29 @@ function Application({ onBack }) {
     setLoading(true);
     setError(null);
     
-    // Create FormData for file upload
     const formDataToSend = new FormData();
     
-    // Add text fields
     Object.keys(formData).forEach(key => {
       if (formData[key]) {
         formDataToSend.append(key, formData[key]);
       }
     });
     
-    // Add files
     files.forEach(file => {
       formDataToSend.append('documents[]', file);
     });
+
+    const accessToken = localStorage.getItem('token');
+    
+    const headers = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
     
     try {
       const response = await fetch(`/api/application/${id}`, {
         method: 'POST',
+        headers: headers,
         body: formDataToSend,
       });
       

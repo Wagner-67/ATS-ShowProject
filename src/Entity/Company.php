@@ -27,10 +27,6 @@ class Company
     private ?string $CompanySector = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Location cannot be empty.')]
-    private ?string $CompanyLocation = null;
-
-    #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Job cannot be empty.')]
     private ?string $JobName = null;
 
@@ -45,6 +41,27 @@ class Company
 
     #[ORM\Column(type: "text", nullable: true)] 
     private ?string $markdown = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $street = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $houseNumber = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $city = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $postalCode = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $titel = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $lat = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $lng = null;
 
     public function __construct()
     {
@@ -77,18 +94,6 @@ class Company
     public function setCompanySector(string $CompanySector): static
     {
         $this->CompanySector = $CompanySector;
-
-        return $this;
-    }
-
-    public function getCompanyLocation(): ?string
-    {
-        return $this->CompanyLocation;
-    }
-
-    public function setCompanyLocation(string $CompanyLocation): static
-    {
-        $this->CompanyLocation = $CompanyLocation;
 
         return $this;
     }
@@ -149,6 +154,90 @@ class Company
     public function setMarkdown(string $markdown): static
     {
         $this->markdown = $markdown;
+
+        return $this;
+    }
+
+    public function getStreet(): ?string
+    {
+        return $this->street;
+    }
+
+    public function setStreet(string $street): static
+    {
+        $this->street = $street;
+
+        return $this;
+    }
+
+    public function getHouseNumber(): ?string
+    {
+        return $this->houseNumber;
+    }
+
+    public function setHouseNumber(string $houseNumber): static
+    {
+        $this->houseNumber = $houseNumber;
+
+        return $this;
+    }
+
+    public function getCity(): ?string
+    {
+        return $this->city;
+    }
+
+    public function setCity(string $city): static
+    {
+        $this->city = $city;
+
+        return $this;
+    }
+
+    public function getPostalCode(): ?string
+    {
+        return $this->postalCode;
+    }
+
+    public function setPostalCode(string $postalCode): static
+    {
+        $this->postalCode = $postalCode;
+
+        return $this;
+    }
+
+    public function getTitel(): ?string
+    {
+        return $this->titel;
+    }
+
+    public function setTitel(string $titel): static
+    {
+        $this->titel = $titel;
+
+        return $this;
+    }
+
+    public function getLat(): ?string
+    {
+        return $this->lat;
+    }
+
+    public function setLat(?string $lat): static
+    {
+        $this->lat = $lat;
+
+        return $this;
+    }
+
+    public function getLng(): ?string
+    {
+        return $this->lng;
+    }
+
+    public function setLng(?string $lng): static
+    {
+        $this->lng = $lng;
 
         return $this;
     }

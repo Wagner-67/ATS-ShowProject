@@ -39,7 +39,7 @@ final class UserController extends AbstractController
                 ->withExpires($refreshTokenEntity->getValid())
                 ->withPath('/')
                 ->withDomain(null)
-                ->withSecure(false) // Set to true in production with HTTPS
+                ->withSecure(false)
                 ->withHttpOnly(true)
                 ->withSameSite('lax');
             $response->headers->setCookie($cookie);

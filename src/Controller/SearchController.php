@@ -19,7 +19,10 @@ final class SearchController extends AbstractController
         $page = max(1, $request->query->getInt('page', 1));
         $limit = min(100, max(1, $request->query->getInt('limit', 10)));
 
-        $result = $searchService->listApplications($page, $limit);
+        $userLat = $request->query->get('latitude') ? (float) $request->query->get('latitude') : null;
+        $userLng = $request->query->get('longitude') ? (float) $request->query->get('longitude') : null;
+
+        $result = $searchService->listApplications($page, $limit, $userLat, $userLng);
 
         return $this->json($result['body'], $result['status']);
     }

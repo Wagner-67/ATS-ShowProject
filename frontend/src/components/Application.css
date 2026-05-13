@@ -1,50 +1,57 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+/* ============================================================
+   APPLICATION FORM – Barrierefrei & optimiert
+   Prefix: ap-
+   ============================================================ */
 
+/* ---------- DESIGN TOKENS ---------- */
 :root {
   --bg: #080a0f;
   --surface: rgba(255, 255, 255, 0.04);
-  --surface-hover: rgba(255, 255, 255, 0.07);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.18);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
   --text: #f0ede8;
-  --text-muted: rgba(240, 237, 232, 0.45);
+  --text-muted: rgba(240, 237, 232, 0.6);
   --accent: #e8ff5a;
   --accent-glow: rgba(232, 255, 90, 0.15);
   --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.1);
   --radius: 12px;
   --radius-sm: 8px;
+  --focus-ring: 0 0 0 3px rgba(232, 255, 90, 0.5);
 }
 
-* { 
-  box-sizing: border-box; 
-  margin: 0; 
-  padding: 0; 
+/* ---------- RESET ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html, body {
   height: 100%;
-  overflow-y: auto;
 }
 
 body {
   background: var(--bg);
   font-family: 'DM Sans', sans-serif;
   color: var(--text);
-  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
 
+/* ---------- CONTAINER ---------- */
 .ap-container {
   min-height: 100vh;
   background: var(--bg);
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(232, 255, 90, 0.05) 0%, transparent 60%),
     radial-gradient(ellipse 30% 30% at 80% 60%, rgba(100, 160, 255, 0.03) 0%, transparent 50%);
-  overflow-y: auto;
-  position: relative;
 }
 
-/* NAV */
+/* ========== NAVIGATION ========== */
 .ap-nav {
   position: fixed;
   top: 0;
@@ -53,8 +60,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
-  height: 58px;
+  padding: 0 clamp(16px, 4vw, 32px);
+  height: 60px;
   background: rgba(8, 10, 15, 0.85);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
@@ -64,7 +71,7 @@ body {
 .ap-logo {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 1.125rem;
   letter-spacing: 0.1em;
   color: var(--accent);
 }
@@ -76,16 +83,17 @@ body {
 .ap-back-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 8px;
+  padding: 10px 18px;
+  min-height: 44px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
+  font-size: 0.9375rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
 }
 
 .ap-back-btn svg {
@@ -99,26 +107,30 @@ body {
   border-color: var(--border-hover);
 }
 
-/* MAIN */
+.ap-back-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ========== MAIN CONTENT ========== */
 .ap-main {
   max-width: 700px;
   margin: 0 auto;
-  padding: 90px 24px 80px;
-  overflow-y: visible;
+  padding: 100px clamp(16px, 4vw, 24px) 80px;
 }
 
-/* FORM */
+/* ========== FORM ========== */
 .ap-form {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px;
+  padding: clamp(20px, 4vw, 32px);
   margin-bottom: 40px;
 }
 
 .ap-form-title {
   font-family: 'Syne', sans-serif;
-  font-size: 1.4rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
   font-weight: 700;
   margin-bottom: 28px;
   color: var(--text);
@@ -138,20 +150,21 @@ body {
 
 .ap-section-title {
   font-family: 'Syne', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
+/* Form Group */
 .ap-form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
   flex: 1;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .ap-form-group:last-child {
@@ -160,7 +173,7 @@ body {
 
 .ap-form-row {
   display: flex;
-  gap: 14px;
+  gap: 16px;
 }
 
 .ap-form-row .ap-form-group {
@@ -168,11 +181,12 @@ body {
 }
 
 .ap-label {
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--text-muted);
 }
 
+/* Input & Select */
 .ap-input,
 select.ap-input {
   width: 100%;
@@ -183,15 +197,14 @@ select.ap-input {
   border-radius: var(--radius-sm);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.15s;
+  font-size: 0.9375rem;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 select.ap-input {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(240, 237, 232, 0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='rgba(240, 237, 232, 0.6)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-color: rgba(255, 255, 255, 0.03);
@@ -202,31 +215,41 @@ textarea.ap-input {
   height: auto;
   padding: 12px 14px;
   resize: vertical;
+  min-height: 100px;
 }
 
 .ap-input::placeholder {
   color: var(--text-muted);
 }
 
-.ap-input:focus {
-  border-color: rgba(232, 255, 90, 0.4);
-  background: rgba(255, 255, 255, 0.06);
+/* Fokus – ersetzt outline: none */
+.ap-input:focus,
+select.ap-input:focus {
   outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(232, 255, 90, 0.2);
 }
 
-/* UPLOAD */
+/* ========== UPLOAD ZONE ========== */
 .ap-upload-zone {
   border: 2px dashed var(--border);
   border-radius: var(--radius);
-  padding: 40px 24px;
+  padding: clamp(24px, 5vw, 40px) 24px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .ap-upload-zone:hover {
   border-color: var(--border-hover);
   background: rgba(255, 255, 255, 0.02);
+}
+
+.ap-upload-zone:focus-within {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring);
 }
 
 .ap-upload-zone.drag-active {
@@ -261,14 +284,15 @@ textarea.ap-input {
 
 .ap-upload-text strong {
   color: var(--accent);
+  font-weight: 600;
 }
 
 .ap-upload-hint {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
-/* FILE LIST */
+/* ========== FILE LIST ========== */
 .ap-file-list {
   margin-top: 12px;
   display: flex;
@@ -286,6 +310,7 @@ textarea.ap-input {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  gap: 8px;
 }
 
 .ap-file-info {
@@ -304,7 +329,7 @@ textarea.ap-input {
 }
 
 .ap-file-name {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -318,8 +343,8 @@ textarea.ap-input {
 }
 
 .ap-file-remove {
-  width: 28px;
-  height: 28px;
+  width: 36px;                                /* erhöht von 28px */
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -328,22 +353,27 @@ textarea.ap-input {
   border-radius: 6px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   flex-shrink: 0;
 }
 
 .ap-file-remove svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .ap-file-remove:hover {
-  background: rgba(248, 113, 113, 0.1);
-  border-color: rgba(248, 113, 113, 0.3);
+  background: var(--danger-bg);
+  border-color: rgba(248, 113, 113, 0.35);
   color: var(--danger);
 }
 
-/* SUBMIT */
+.ap-file-remove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.4);
+}
+
+/* ========== SUBMIT ========== */
 .ap-form-submit {
   display: flex;
   justify-content: flex-end;
@@ -355,56 +385,72 @@ textarea.ap-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 28px;
+  padding: 12px 32px;
+  min-height: 48px;
   background: var(--accent);
   border: none;
   border-radius: var(--radius-sm);
   color: #080a0f;
   font-family: 'Syne', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 0.9375rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .ap-submit-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .ap-submit-btn:hover:not(:disabled) {
   background: #f0ff6e;
-  transform: translateY(-1px);
   box-shadow: 0 6px 24px rgba(232, 255, 90, 0.3);
 }
 
+.ap-submit-btn:focus-visible:not(:disabled) {
+  outline: none;
+  box-shadow: 0 0 0 3px #080a0f, 0 0 0 6px var(--accent);
+}
+
 .ap-submit-btn:active:not(:disabled) {
-  transform: translateY(0);
+  background: #d9f04a;
 }
 
 .ap-submit-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background: rgba(232, 255, 90, 0.3);
+  color: rgba(8, 10, 15, 0.5);
 }
 
-/* ERROR & SUCCESS MESSAGES */
+@media (prefers-reduced-motion: no-preference) {
+  .ap-submit-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .ap-submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* ========== MESSAGES ========== */
 .ap-error-message {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: rgba(248, 113, 113, 0.1);
-  border-left: 4px solid #dc2626;
+  background-color: var(--danger-bg);
+  border-left: 4px solid var(--danger);
   padding: 1rem;
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
-  color: #fca5a5;
+  color: var(--danger);
+  font-weight: 500;
 }
 
 .ap-error-message svg {
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-  color: #dc2626;
 }
 
 .ap-success-message {
@@ -412,14 +458,13 @@ textarea.ap-input {
   padding: 3rem;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-radius: 1rem;
-  color: white;
+  color: #ffffff;
 }
 
 .ap-success-message svg {
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
   margin-bottom: 1rem;
-  stroke-width: 1.5;
 }
 
 .ap-success-message h2 {
@@ -428,18 +473,19 @@ textarea.ap-input {
 }
 
 .ap-spinner {
-  animation: spin 1s linear infinite;
   width: 1.25rem;
   height: 1.25rem;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .ap-spinner {
+    animation: spin 1s linear infinite;
+  }
+}
+
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .ap-hint-text {
@@ -449,10 +495,10 @@ textarea.ap-input {
   text-align: center;
 }
 
-/* RESPONSIVE */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .ap-nav {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 
   .ap-nav-spacer {
@@ -460,25 +506,20 @@ textarea.ap-input {
   }
 
   .ap-main {
-    padding: 80px 16px 60px;
+    padding: 80px 12px 60px;
   }
 
   .ap-form {
-    padding: 24px 20px;
+    padding: 20px 16px;
   }
 
   .ap-form-row {
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
   }
 
   .ap-upload-zone {
-    padding: 32px 16px;
-  }
-
-  .ap-form-title {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
+    padding: 28px 16px;
   }
 
   .ap-submit-btn {
@@ -487,7 +528,7 @@ textarea.ap-input {
   }
 }
 
-/* Scrollbar Styling */
+/* ========== SCROLLBAR ========== */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -495,7 +536,6 @@ textarea.ap-input {
 
 ::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.03);
-  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -504,5 +544,16 @@ textarea.ap-input {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
