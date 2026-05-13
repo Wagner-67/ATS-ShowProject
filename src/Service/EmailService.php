@@ -17,8 +17,10 @@ final class EmailService
         ?User $user,
         Application $application,
     ): void {
-        
-        if (!$user) {
+
+        $email = $user?->getEmail() ?? $application->getEmail();
+
+        if (!$email) {
             return;
         }
 
@@ -28,12 +30,12 @@ final class EmailService
             '<h1>Hallo %s</h1>
             <p>Deine Bewerbung wurde erfolgreich erstellt.</p>
             <p>Du kannst deine Bewerbung jederzeit in deinem Profil zurücksehen und den Status ansehen.</p>',
-            $application->getFirstName(),
+            $application->getFirstname(),
         );
 
         $this->bus->dispatch(
             new SendEmailMessage(
-                $user->getEmail(),
+                $email,
                 $subject,
                 $body,
             )
