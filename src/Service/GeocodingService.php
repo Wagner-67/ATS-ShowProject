@@ -12,6 +12,10 @@ final class GeocodingService
         private readonly HttpClientInterface $httpClient,
     ) {}
 
+    /**
+     * @return array<string, mixed>
+     */
+
     public function geocode(
         ?string $street,
         ?string $houseNumber,

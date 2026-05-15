@@ -175,8 +175,9 @@ function Application({ onBack }) {
             <h3 className="ap-section-title">Personal Data</h3>
             
             <div className="ap-form-group">
-              <label className="ap-label">Salutation</label>
+              <label className="ap-label" htmlFor="salutation">Salutation</label>
               <select 
+                id="salutation"
                 name="salutation" 
                 className="ap-input"
                 value={formData.salutation}
@@ -306,6 +307,15 @@ function Application({ onBack }) {
               onDragOver={handleDrag}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              aria-label="PDF-Dateien hochladen"
             >
               <input
                 ref={fileInputRef}
@@ -341,19 +351,20 @@ function Application({ onBack }) {
                       <span className="ap-file-name">{file.name}</span>
                       <span className="ap-file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                     </div>
-                    <button 
-                      type="button" 
-                      className="ap-file-remove"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(index);
-                      }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
-                    </button>
+                      <button 
+                        type="button" 
+                        className="ap-file-remove"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(index);
+                        }}
+                        aria-label={`${file.name} entfernen`}
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
                   </div>
                 ))}
               </div>
@@ -369,9 +380,16 @@ function Application({ onBack }) {
             >
               {loading ? (
                 <>
-                  <svg className="ap-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="8"/>
-                  </svg>
+                <svg 
+                  className="ap-spinner" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor"
+                  aria-hidden="true"
+                  role="img"
+                >
+                  <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="8"/>
+                </svg>
                   Sending...
                 </>
               ) : (

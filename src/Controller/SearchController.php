@@ -39,4 +39,24 @@ final class SearchController extends AbstractController
 
         return $this->json($result['body'], $result['status']);
     }
+
+    #[Route('/api/search/radius', name: 'search_by_radius', methods: ['POST'])]
+    public function searchByRadius(
+        Request $request,
+        SearchService $searchService
+    ): Response
+    {
+        $data = json_decode($request->getContent(), true);
+        
+        if (empty($data['latitude']) || empty($data['longitude'])) {
+            return $this->json([
+                'status' => 400,
+                'body' => ['error' => 'Latitude and longitude are required']
+            ], 400);
+        }
+        
+        $result = $searchService->searchApplications($data);
+        
+        return $this->json($result['body'], $result['status']);
+    }
 }

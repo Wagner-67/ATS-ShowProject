@@ -9,7 +9,6 @@ use App\Entity\UserPdfs;
 use App\Event\ApplicationSubmitEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 final class ApplicationService
@@ -21,13 +20,26 @@ final class ApplicationService
 
     public function __construct(
         private EntityManagerInterface $em,
-        private ValidatorInterface $validator,
         private EventDispatcherInterface $eventDispatcher,
     ) {
         $this->uploadDir = __DIR__ . '/../../public/uploads';
     }
 
-    public function createApplication(array $data, ?User $user = null, string $companyApplicationId, array $files = []): array
+    /**
+     * @param array{
+     *     salutation?: string,
+     *     firstname?: string,
+     *     lastname?: string,
+     *     email?: string,
+     *     phoneNumber?: string,
+     *     street?: string,
+     *     houseNumber?: string,
+     *     city?: string
+     * } $data
+     * @param array<int, UploadedFile> $files
+     * @return array{status: int, body: array{error?: string, details?: array<int, string>, message?: string, applicationId?: int|null, status?: string|null, uploadedFiles?: int, files?: array<int, array{fileName: string|null, filePath: string|null, size: int|null}>}}
+     */
+    public function createApplication(array $data, string $companyApplicationId, ?User $user = null, array $files = []): array
     {
 
         $company = $this->em->getRepository(Company::class)->findOneBy(['applicationId' => $companyApplicationId]);
@@ -68,6 +80,7 @@ final class ApplicationService
         $errors = [];
 
         foreach ($files as $index => $file) {
+            /** @var UploadedFile|null $file */
             if (!$file instanceof UploadedFile) {
                 $errors[] = "File at index $index is not a valid UploadedFile.";
                 continue;
@@ -198,6 +211,10 @@ final class ApplicationService
         return substr($fileName, 0, 50);
     }
 
+    /**
+     * @return array<int, array{id: int|null, firstname: string|null, lastname: string|null, email: string|null, status: string|null, documents: array<int, array{fileName: string|null, filePath: string|null, createdAt: string}>}>
+     */
+
     public function getApplicationsForUser(User $user): array
     {
         $applications = $this->em->getRepository(Application::class)->findBy(['user' => $user]);
@@ -219,6 +236,10 @@ final class ApplicationService
             ];
         }, $applications);
     }
+
+    /**
+     * @return array<string, mixed>
+    */
 
     public function deleteApplication(Application $application, ?User $user = null): array
     {
@@ -247,6 +268,10 @@ final class ApplicationService
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+    */
+
     public function getAllApplications(User $user): array
     {
         $applications = $this->em->getRepository(Application::class)->findBy(['user' => $user]);
@@ -260,6 +285,10 @@ final class ApplicationService
             'body' => $data
         ];
     }
+
+    /**
+     * @return array<string, mixed>
+    */
 
     public function getApplicationById(int $id, User $user): array
     {
@@ -280,6 +309,10 @@ final class ApplicationService
             'body' => $this->formatApplicationData($application)
         ];
     }
+
+    /**
+     * @return array{id: int|null, salutation: string|null, firstname: string|null, lastname: string|null, email: string|null, phoneNumber: string|null, street: string|null, houseNumber: string|null, city: string|null, status: string|null, documents: array<int, array{id: int|null, fileName: string|null, filePath: string|null, mimeType: string|null, size: int|null, createdAt: string}>, jobName?: string|null, companyName?: string|null}
+     */
 
     private function formatApplicationData(Application $application): array
     {
@@ -317,6 +350,10 @@ final class ApplicationService
         
         return $data;
     }
+
+    /**
+     * @return array<string, mixed>
+    */
 
     public function deleteApplicationById(int $applicationId, ?User $user = null): array
     {

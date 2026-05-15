@@ -23,34 +23,35 @@ class Application
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $applicationId = null;
 
+    /** @var Collection<int, UserPdfs> */
     #[ORM\OneToMany(mappedBy: 'application', targetEntity: UserPdfs::class)]
     private Collection $documents;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: Salutation::class)]
+    #[ORM\Column(type: 'string', length: 20, enumType: Salutation::class, nullable: true)]
     private ?Salutation $salutation = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $firstname = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $lastname = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $phoneNumber = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $street = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $houseNumber = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $city = null;
 
-    #[ORM\Column(type: 'string', length: 20, enumType: StatusType::class)]
+    #[ORM\Column(type: 'string', length: 20, enumType: StatusType::class, nullable: true)]
     private ?StatusType $status = StatusType::PENDING;
 
     public function __construct()
@@ -66,6 +67,7 @@ class Application
     public function getApplicationId(): ?string { return $this->applicationId; }
     public function setApplicationId(?string $applicationId): static { $this->applicationId = $applicationId; return $this; }
 
+    /** @return Collection<int, UserPdfs> */
     public function getDocuments(): Collection { return $this->documents; }
 
     public function getSalutation(): ?Salutation { return $this->salutation; }
@@ -101,7 +103,8 @@ class Application
 
     public function getStatus(): ?StatusType { return $this->status; }
     public function setStatus(StatusType|string|null $status): static
-    {        if (is_string($status)) {
+    {
+        if (is_string($status)) {
             $status = StatusType::tryFrom($status);
         }
         $this->status = $status;
@@ -114,19 +117,16 @@ class Application
             $this->documents->add($document);
             $document->setApplication($this);
         }
-
         return $this;
     }
 
     public function removeDocument(UserPdfs $document): static
     {
         if ($this->documents->removeElement($document)) {
-            // set the owning side to null (unless already changed)
             if ($document->getApplication() === $this) {
                 $document->setApplication(null);
             }
         }
-
         return $this;
     }
 }

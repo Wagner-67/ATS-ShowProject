@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Service\ApplicationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,8 +41,12 @@ final class ApplicationController extends AbstractController
         });
         
         $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw new \LogicException('User must be instance of App\Entity\User');
+        }
         
-        $result = $applicationService->createApplication($data, $user, $id, $files);
+        $result = $applicationService->createApplication($data, $id, $user, $files);
         
         return new JsonResponse($result['body'], $result['status']);
     }
@@ -50,7 +55,13 @@ final class ApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getAll(ApplicationService $applicationService): JsonResponse
     {
-        $result = $applicationService->getAllApplications($this->getUser());
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw new \LogicException('User must be instance of App\Entity\User');
+        }
+
+        $result = $applicationService->getAllApplications($user);
 
         return new JsonResponse($result['body'], $result['status']);
     }
@@ -59,7 +70,13 @@ final class ApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function getOne(int $id, ApplicationService $applicationService): JsonResponse
     {
-        $result = $applicationService->getApplicationById($id, $this->getUser());
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw new \LogicException('User must be instance of App\Entity\User');
+        }
+        
+        $result = $applicationService->getApplicationById($id, $user);
 
         return new JsonResponse($result['body'], $result['status']);
     }
@@ -68,7 +85,13 @@ final class ApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function delete(int $id, ApplicationService $applicationService): JsonResponse
     {
-        $result = $applicationService->deleteApplicationById($id, $this->getUser());
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            throw new \LogicException('User must be instance of App\Entity\User');
+        }
+
+        $result = $applicationService->deleteApplicationById($id, $user);
         
         return new JsonResponse($result['body'], $result['status']);
     }

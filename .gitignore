@@ -16,3 +16,6 @@
 ###< lexik/jwt-authentication-bundle ###
 
 /public/uploads/
+###> phpstan/phpstan ###
+phpstan.neon
+###< phpstan/phpstan ###

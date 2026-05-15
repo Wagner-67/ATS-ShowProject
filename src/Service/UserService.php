@@ -8,7 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Generator\RefreshTokenGeneratorInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -20,11 +19,20 @@ final class UserService
         private EntityManagerInterface $em,
         private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
-        private Security $security,
         private JWTTokenManagerInterface $jwtManager,
         private RefreshTokenGeneratorInterface $refreshTokenGenerator,
         private RefreshTokenManagerInterface $refreshTokenManager
     ) {}
+
+    /**
+     * @param array{
+     *     email?: string,
+     *     password?: string,
+     *     confirmPassword?: string,
+     *     type?: string
+     * } $data
+     * @return array<string, mixed>
+     */
 
     public function registerUser(array $data): array
     {

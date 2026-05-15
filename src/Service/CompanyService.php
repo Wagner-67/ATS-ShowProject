@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Application;
 use App\Entity\Company;
+use App\Entity\User;
 use App\Event\GeolocationEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -18,7 +19,23 @@ final class CompanyService
         private EventDispatcherInterface $eventDispatcher,
     ) {}
 
-    public function createCompany(array $data, $user): array
+    /**
+     * @param array{
+     *     title?: string,
+     *     companyName?: string,
+     *     companySector?: string,
+     *     street?: string,
+     *     houseNumber?: string,
+     *     city?: string,
+     *     postalCode?: string,
+     *     jobName?: string,
+     *     description?: string
+     * } $data
+     * @param User $user
+     * @return array{status: int, body: array{error?: string, message?: string}}
+     */
+
+    public function createCompany(array $data, User $user): array
     {
         $company = new Company();
         $company->setTitel($data['title'] ?? null);
@@ -40,8 +57,6 @@ final class CompanyService
             ];
         }
 
-        
-
         $this->em->persist($company);
 
         $this->eventDispatcher->dispatch(new GeolocationEvent($company));
@@ -54,7 +69,11 @@ final class CompanyService
         ];
     }
 
-    public function getCompany($user): array
+    /**
+     * @return array{status: int, body: array<int, array<string, mixed>>|array{error: string}}
+    */
+
+    public function getCompany(User $user): array
     {
         $companies = $this->em->getRepository(Company::class)->findBy(['user' => $user]);
 
@@ -92,7 +111,22 @@ final class CompanyService
         ];
     }
 
-    public function updateCompany(array $data, $user, string $id): array
+    /**
+     * @param array{
+     *     title?: string,
+     *     companyName?: string,
+     *     companySector?: string,
+     *     street?: string,
+     *     houseNumber?: string,
+     *     city?: string,
+     *     postalCode?: string,
+     *     jobName?: string,
+     *     description?: string
+     * } $data
+     * @return array{status: int, body: array{error?: string, message?: string}}
+     */
+
+    public function updateCompany(array $data, User $user, string $id): array
     {
         $company = $this->em->getRepository(Company::class)->findOneBy([
             'id' => $id,
@@ -132,7 +166,10 @@ final class CompanyService
         ];
     }
 
-    public function deleteCompany($user, string $id): array
+    /**
+     * @return array{status: int, body: array{error?: string, message?: string}}
+     */
+    public function deleteCompany(User $user, string $id): array
     {
         $company = $this->em->getRepository(Company::class)->findOneBy([
             'id' => $id,
@@ -155,7 +192,11 @@ final class CompanyService
         ];
     }
 
-    public function getApplications($user): array
+    /**
+     * @return array<int, array<string, mixed>>
+    */
+
+    public function getApplications(User $user): array
     {
         $companies = $this->em
             ->getRepository(Company::class)
@@ -201,9 +242,12 @@ final class CompanyService
         return $result;
     }
 
-    public function changeStatus($id, $data, $user): array
+    /**
+     * @param array{status?: string} $data
+     * @return array{status: int, body: array{error?: string, message?: string, applicationId?: int|null, newStatus?: string}}
+     */
+    public function changeStatus(int $id, array $data, User $user): array
     {
-
         $application = $this->em->getRepository(Application::class)->find($id);
 
         if (!$application) {

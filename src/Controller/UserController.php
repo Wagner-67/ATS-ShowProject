@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
@@ -55,11 +56,15 @@ final class UserController extends AbstractController
     {
         $user = $this->getUser();
 
+        if (!$user instanceof User) {
+            throw new \LogicException('User must be instance of App\Entity\User');
+        }
+
         $type = $user->getType();
 
         return $this->json([
             'user' => 'logged in',
-            'type' => $type?->value,
+            'type' => $type->value,
         ]);
     }
 }

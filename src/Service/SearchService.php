@@ -4,7 +4,6 @@ namespace App\Service;
 
 use App\Entity\Company;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 
 final class SearchService
 {
@@ -12,9 +11,11 @@ final class SearchService
 
     public function __construct(
         private EntityManagerInterface $em,
-        private ?LoggerInterface $logger = null,
     ) {}
 
+    /**
+     * @return array{status: int, body: array{data: array<int, array<string, mixed>>, pagination: array{page: int, limit: int, total: int, pages: float}}}
+     */
     public function listApplications(int $page = 1, int $limit = 10, ?float $userLat = null, ?float $userLng = null): array
     {
         $offset = ($page - 1) * $limit;
@@ -54,6 +55,27 @@ final class SearchService
         ];
     }
 
+    /**
+     * @param array{
+     *     companyName?: string,
+     *     companySector?: string,
+     *     companyLocation?: string,
+     *     jobName?: string,
+     *     applicationId?: string,
+     *     description?: string,
+     *     title?: string,
+     *     createdFrom?: string,
+     *     createdTo?: string,
+     *     search?: string,
+     *     applicationType?: string,
+     *     latitude?: string|float,
+     *     longitude?: string|float,
+     *     radius?: string|float,
+     *     sortBy?: string,
+     *     sortOrder?: string
+     * } $data
+     * @return array{status: int, body: array{data: array<int, array<string, mixed>>}}
+     */
     public function searchApplications(array $data): array
     {
         $qb = $this->em
@@ -120,12 +142,32 @@ final class SearchService
             )->setParameter('search', '%' . $searchTerm . '%');
         }
 
+        if (!empty($data['applicationType'])) {
+            $qb->andWhere('LOWER(c.applicationType) = :applicationType')
+                ->setParameter('applicationType', strtolower($data['applicationType']));
+        }
+
         $userLat = !empty($data['latitude']) ? (float) $data['latitude'] : null;
         $userLng = !empty($data['longitude']) ? (float) $data['longitude'] : null;
         $radiusKm = !empty($data['radius']) ? (float) $data['radius'] : null;
 
         if ($userLat !== null && $userLng !== null && $radiusKm !== null) {
-            $this->applyBoundingBoxFilter($qb, $userLat, $userLng, $radiusKm);
+            // Verwende die tatsächlichen Feldnamen aus der Entity
+            // Versuche zuerst die Getter-Methoden zu finden
+            $latField = 'c.lat'; // oder 'c.latitude' - je nach Entity-Definition
+            $lngField = 'c.lng'; // oder 'c.longitude' - je nach Entity-Definition
+            
+            $latDelta = rad2deg($radiusKm / self::EARTH_RADIUS_KM);
+            $lngDelta = rad2deg($radiusKm / (self::EARTH_RADIUS_KM * cos(deg2rad($userLat))));
+
+            $qb->andWhere($latField . ' IS NOT NULL')
+                ->andWhere($lngField . ' IS NOT NULL')
+                ->andWhere($latField . ' BETWEEN :latMin AND :latMax')
+                ->andWhere($lngField . ' BETWEEN :lngMin AND :lngMax')
+                ->setParameter('latMin', $userLat - $latDelta)
+                ->setParameter('latMax', $userLat + $latDelta)
+                ->setParameter('lngMin', $userLng - $lngDelta)
+                ->setParameter('lngMax', $userLng + $lngDelta);
         }
 
         $sortField = $data['sortBy'] ?? 'created_at';
@@ -163,10 +205,10 @@ final class SearchService
         }
 
         if ($sortField === 'distance' && $userLat !== null && $userLng !== null) {
-            usort($result, function ($a, $b) {
+            usort($result, function ($a, $b) use ($sortOrder) {
                 $distA = $a['distance'] ?? PHP_FLOAT_MAX;
                 $distB = $b['distance'] ?? PHP_FLOAT_MAX;
-                return $distA <=> $distB;
+                return $sortOrder === 'ASC' ? $distA <=> $distB : $distB <=> $distA;
             });
         }
 
@@ -178,21 +220,9 @@ final class SearchService
         ];
     }
 
-    private function applyBoundingBoxFilter($qb, float $lat, float $lng, float $radiusKm): void
-    {
-        $latDelta = rad2deg($radiusKm / self::EARTH_RADIUS_KM);
-        $lngDelta = rad2deg($radiusKm / (self::EARTH_RADIUS_KM * cos(deg2rad($lat))));
-
-        $qb->andWhere('c.latitude IS NOT NULL')
-            ->andWhere('c.longitude IS NOT NULL')
-            ->andWhere('c.latitude BETWEEN :latMin AND :latMax')
-            ->andWhere('c.longitude BETWEEN :lngMin AND :lngMax')
-            ->setParameter('latMin', $lat - $latDelta)
-            ->setParameter('latMax', $lat + $latDelta)
-            ->setParameter('lngMin', $lng - $lngDelta)
-            ->setParameter('lngMax', $lng + $lngDelta);
-    }
-
+    /**
+     * @return float|null
+     */
     private function calculateDistance(float $lat1, float $lng1, ?float $lat2, ?float $lng2): ?float
     {
         if ($lat2 === null || $lng2 === null) {
@@ -211,10 +241,14 @@ final class SearchService
         return round(self::EARTH_RADIUS_KM * $c, 1);
     }
 
+    /**
+     * @return array{id: int|null, title: string|null, companyName: string|null, companySector: string|null, street: string|null, houseNumber: string|null, city: string|null, postalCode: string|null, jobName: string|null, description: string|null, createdAt: string, applicationId: string|null, latitude: float|null, longitude: float|null, distance?: float|null}
+     */
     private function serializeCompany(Company $company, ?float $userLat = null, ?float $userLng = null): array
     {
-        $lat = $company->getLat();
-        $lng = $company->getLng();
+
+        $lat = $company->getLat() !== null ? (float) $company->getLat() : null;
+        $lng = $company->getLng() !== null ? (float) $company->getLng() : null;
 
         $data = [
             'id' => $company->getId(),

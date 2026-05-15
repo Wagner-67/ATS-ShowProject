@@ -1,11 +1,9 @@
-// Landingpage.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./Landingpage.css";
 
-// Leaflet Standard-Marker-Icon Fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
@@ -13,7 +11,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
-// Custom Marker für Bewerbungen (grün/gelb)
 const applicationIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
@@ -23,19 +20,6 @@ const applicationIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Benutzerstandort-Marker (blau)
-const userLocationIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-// ==================== SUB-KOMPONENTEN ====================
-
-// Komponente für Karten-Events (Bewegung, Zoom) - FIX: useRef für Callback
 function MapEventHandler({ onMoveEnd }) {
   const onMoveEndRef = useRef(onMoveEnd);
   
@@ -67,7 +51,6 @@ function MapEventHandler({ onMoveEnd }) {
   return null;
 }
 
-// Komponente zum Setzen der Map-View - FIX: Vergleich mit prev-Werten
 function MapViewSetter({ center, zoom }) {
   const map = useMap();
   const prevCenterRef = useRef(null);
@@ -89,7 +72,6 @@ function MapViewSetter({ center, zoom }) {
   return null;
 }
 
-// Umkreis-Visualisierung - FIX: Optimierte Dependencies
 function RadiusCircle({ center, radius }) {
   const map = useMap();
   const circleRef = useRef(null);
@@ -122,10 +104,8 @@ function RadiusCircle({ center, radius }) {
   return null;
 }
 
-// ==================== HAUPTKOMPONENTE ====================
-
 function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
-  // === STATES ===
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -136,32 +116,29 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
   const [isFavorited, setIsFavorited] = useState(false);
   const [viewMode, setViewMode] = useState("list");
 
-  // Such-Filter
   const [searchType, setSearchType] = useState("");
   const [typeDropdownOpen, setTypeDropdownOpen] = useState(false);
   const [whatSearch, setWhatSearch] = useState("");
   const [whereSearch, setWhereSearch] = useState("");
 
-  // Geo-Filter
-  const [userLocation, setUserLocation] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(50);
   const [mapCenter, setMapCenter] = useState({ lat: 51.1657, lng: 10.4515 });
   const [mapZoom, setMapZoom] = useState(6);
   const [mapBounds, setMapBounds] = useState(null);
-  const [locatingUser, setLocatingUser] = useState(false);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
 
-  // Refs
+  // Umkreissuche States
+  const [searchRadius, setSearchRadius] = useState(10);
+  const [searchLocation, setSearchLocation] = useState("");
+  const [searchCoords, setSearchCoords] = useState(null);
+
   const dropdownRef = useRef(null);
   const typeDropdownRef = useRef(null);
   const modalRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const lastBoundsRef = useRef(null);
-  const isInitialMount = useRef(true);
 
   const searchTypes = [
     { value: "", label: "Alle" },
@@ -170,7 +147,14 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     { value: "praktikum", label: "Praktikum" },
   ];
 
-  // ==================== HILFSFUNKTIONEN ====================
+  const radiusOptions = [
+    { value: 10, label: "10 km" },
+    { value: 20, label: "20 km" },
+    { value: 30, label: "30 km" },
+    { value: 40, label: "40 km" },
+    { value: 50, label: "50 km" },
+    { value: 100, label: "100 km" },
+  ];
 
   const deg2rad = useCallback((deg) => deg * (Math.PI / 180), []);
 
@@ -190,17 +174,31 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     return `${distance} km`;
   }, []);
 
-  // ==================== API-FUNKTIONEN ====================
+  // Geocoding-Funktion: Adresse in Koordinaten umwandeln
+  const geocodeAddress = useCallback(async (address) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        return {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        };
+      }
+      return null;
+    } catch (err) {
+      console.error("Geocoding failed:", err);
+      return null;
+    }
+  }, []);
 
   const loadInitialApplications = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams({ page: currentPage, limit: 25 });
-      if (userLocation) {
-        params.append("latitude", userLocation.lat);
-        params.append("longitude", userLocation.lng);
-      }
       const response = await fetch(`/api/search?${params}`, {
         headers: { Accept: "application/json" },
       });
@@ -216,7 +214,7 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, userLocation]);
+  }, [currentPage]);
 
   const fitMapToMarkers = useCallback((apps) => {
     if (!apps || apps.length === 0) return;
@@ -234,7 +232,6 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     }
   }, []);
 
-  // searchByBounds mit useCallback stabilisieren
   const searchByBounds = useCallback(async () => {
     if (!mapBounds) return;
     setLoading(true);
@@ -269,6 +266,7 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
 
   const handleSearch = useCallback(async (e) => {
     e?.preventDefault();
+    
     setLoading(true);
     setError(null);
     setHasSearched(true);
@@ -280,10 +278,13 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
       if (whatSearch) searchData.search = whatSearch;
       if (whereSearch) searchData.companyLocation = whereSearch;
 
-      if (userLocation && searchRadius) {
-        searchData.latitude = userLocation.lat;
-        searchData.longitude = userLocation.lng;
+      // Wenn Ort für Umkreissuche eingegeben wurde
+      if (searchLocation && searchCoords) {
+        searchData.latitude = searchCoords.lat;
+        searchData.longitude = searchCoords.lng;
         searchData.radius = searchRadius;
+        searchData.sortBy = 'distance';
+        searchData.sortOrder = 'ASC';
       }
 
       const response = await fetch("/api/search", {
@@ -297,10 +298,25 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      setApplications(data.data || []);
+      
+      // Sortiere nach Distanz wenn Umkreissuche aktiv
+      let resultData = data.data || [];
+      if (searchLocation && searchCoords) {
+        resultData = resultData.sort((a, b) => {
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      }
+      
+      setApplications(resultData);
 
-      if (viewMode === "map" && data.data?.length > 0) {
-        const appsWithCoords = data.data.filter((a) => a.latitude && a.longitude);
+      if (viewMode === "map" && searchLocation && searchCoords) {
+        setMapCenter(searchCoords);
+        const zoomLevel = searchRadius <= 10 ? 12 : searchRadius <= 30 ? 11 : searchRadius <= 50 ? 10 : 8;
+        setMapZoom(zoomLevel);
+      } else if (viewMode === "map" && resultData.length > 0) {
+        const appsWithCoords = resultData.filter((a) => a.latitude && a.longitude);
         if (appsWithCoords.length > 0) {
           fitMapToMarkers(appsWithCoords);
         }
@@ -312,46 +328,33 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     } finally {
       setLoading(false);
     }
-  }, [searchType, whatSearch, whereSearch, userLocation, searchRadius, viewMode, fitMapToMarkers]);
+  }, [searchType, whatSearch, whereSearch, searchLocation, searchCoords, searchRadius, viewMode, fitMapToMarkers]);
 
-  // ==================== GEO-FUNKTIONEN ====================
-
-  const locateUser = useCallback(() => {
-    if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
+  // Geocoding durchführen wenn sich der Ort ändert
+  const handleLocationChange = useCallback(async (value) => {
+    setSearchLocation(value);
+    if (value.length < 2) {
+      setSearchCoords(null);
       return;
     }
-    setLocatingUser(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const loc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        };
-        setUserLocation(loc);
-        setMapCenter(loc);
-        setMapZoom(13);
-        setLocatingUser(false);
-      },
-      (err) => {
-        console.error("Geolocation error:", err);
-        setError("Standort konnte nicht ermittelt werden.");
-        setLocatingUser(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-    );
-  }, []);
+    
+    // Debounce für Geocoding
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(async () => {
+      const coords = await geocodeAddress(value);
+      setSearchCoords(coords);
+    }, 500);
+  }, [geocodeAddress]);
 
-  // handleMapMove mit useCallback stabilisieren
   const handleMapMove = useCallback(({ lat, lng, zoom, bounds }) => {
     setMapCenter({ lat, lng });
     setMapZoom(zoom);
     setMapBounds(bounds);
   }, []);
 
-  // ==================== EFFECTS ====================
-
-  // Click-Outside für Dropdowns
   useEffect(() => {
     function handleClick(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -365,7 +368,6 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Escape-Taste für Modal
   useEffect(() => {
     function handleEscKey(e) {
       if (e.key === "Escape" && selectedApplication) {
@@ -376,20 +378,17 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     return () => document.removeEventListener("keydown", handleEscKey);
   }, [selectedApplication]);
 
-  // Initial Load
   useEffect(() => {
     loadInitialApplications();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Map-Bounds-Change → Automatische Suche (Debounced mit Änderungs-Check)
   useEffect(() => {
     if (viewMode !== "map" || !mapBounds) return;
-    
-    // Prüfen ob Bounds sich signifikant geändert haben
+
     const boundsKey = `${mapBounds.north.toFixed(4)}_${mapBounds.south.toFixed(4)}_${mapBounds.east.toFixed(4)}_${mapBounds.west.toFixed(4)}`;
     
     if (boundsKey === lastBoundsRef.current) {
-      return; // Keine signifikante Änderung
+      return;
     }
     
     lastBoundsRef.current = boundsKey;
@@ -408,8 +407,6 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
       }
     };
   }, [mapBounds, viewMode, searchByBounds]);
-
-  // ==================== SONSTIGE HILFSFUNKTIONEN ====================
 
   const getSelectedTypeLabel = () => {
     const type = searchTypes.find((t) => t.value === searchType);
@@ -493,18 +490,16 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
     });
   };
 
-  // ==================== RENDER ====================
-
   const applicationsWithCoords = applications.filter((a) => a.latitude && a.longitude);
 
-  return (
+return (
     <div className="lp-container">
       {/* ========== NAVIGATION ========== */}
-      <nav className="lp-nav">
+      <nav className="lp-nav" role="navigation" aria-label="Hauptnavigation">
         <span className="lp-logo">ATS</span>
         <div className="lp-nav-right">
-          <button className="lp-icon-btn" title="Saved">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <button className="lp-icon-btn" title="Saved" aria-label="Gespeicherte anzeigen">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
           </button>
@@ -512,25 +507,28 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
             <button
               className={`lp-icon-btn lp-user-btn${dropdownOpen ? " open" : ""}`}
               onClick={() => setDropdownOpen((v) => !v)}
+              aria-label="Benutzermenü öffnen"
+              aria-expanded={dropdownOpen}
+              aria-haspopup="true"
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
               </svg>
             </button>
             {dropdownOpen && (
-              <div className="lp-dropdown">
+              <div className="lp-dropdown" role="menu" aria-label="Benutzermenü">
                 {isLoggedIn ? (
                   <>
-                    <button className="lp-dd-item" onClick={() => { onNavigate?.("profile"); setDropdownOpen(false); }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <button className="lp-dd-item" role="menuitem" onClick={() => { onNavigate?.("profile"); setDropdownOpen(false); }}>
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
                       Profil anzeigen
                     </button>
-                    <button className="lp-dd-item danger" onClick={() => { onLogout?.(); setDropdownOpen(false); }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <button className="lp-dd-item danger" role="menuitem" onClick={() => { onLogout?.(); setDropdownOpen(false); }}>
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                         <polyline points="16,17 21,12 16,7" />
                         <line x1="21" y1="12" x2="9" y2="12" />
@@ -540,10 +538,10 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
                   </>
                 ) : (
                   <>
-                    <button className="lp-dd-item" onClick={() => { onNavigate?.("login"); setDropdownOpen(false); }}>
+                    <button className="lp-dd-item" role="menuitem" onClick={() => { onNavigate?.("login"); setDropdownOpen(false); }}>
                       Login
                     </button>
-                    <button className="lp-dd-item" onClick={() => { onNavigate?.("register"); setDropdownOpen(false); }}>
+                    <button className="lp-dd-item" role="menuitem" onClick={() => { onNavigate?.("register"); setDropdownOpen(false); }}>
                       Registrieren
                     </button>
                   </>
@@ -554,97 +552,130 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
         </div>
       </nav>
 
+      {/* ========== HEADER (BANNER) ========== */}
+      <header className="lp-hero" role="banner">
+        <h1>Finde deine nächste Chance</h1>
+        <p className="lp-hero-subtitle">Durchsuche tausende Bewerbungen und finde den perfekten Match</p>
+      </header>
+
       {/* ========== MAIN CONTENT ========== */}
-      <div className="lp-main">
-        <div className="lp-hero">
-          <h1>Finde deine nächste Chance</h1>
-          <p className="lp-hero-subtitle">Durchsuche tausende Bewerbungen und finde den perfekten Match</p>
-        </div>
-
+      <main className="lp-main" role="main" aria-label="Hauptinhalt">
         {/* ========== SEARCH BAR ========== */}
-        <form className="lp-search-bar" onSubmit={handleSearch}>
-          <div className="lp-search-row">
-            <div className="lp-search-field lp-search-what">
-              <label className="lp-search-label">Was suchen Sie?</label>
-              <div className="lp-search-inputs">
-                <div className="lp-type-select" ref={typeDropdownRef}>
-                  <button type="button" className={`lp-type-btn ${typeDropdownOpen ? "open" : ""}`} onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}>
-                    <span>{getSelectedTypeLabel()}</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  {typeDropdownOpen && (
-                    <div className="lp-type-dropdown">
-                      {searchTypes.map((type) => (
-                        <button
-                          key={type.value}
-                          type="button"
-                          className={`lp-type-option ${searchType === type.value ? "active" : ""}`}
-                          onClick={() => { setSearchType(type.value); setTypeDropdownOpen(false); }}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+        <section aria-label="Suche">
+          <form className="lp-search-bar" onSubmit={handleSearch} role="search" aria-label="Bewerbungssuche">
+            <div className="lp-search-row">
+              <div className="lp-search-field lp-search-what">
+                <label className="lp-search-label" htmlFor="what-search">Was suchen Sie?</label>
+                <div className="lp-search-inputs">
+                  <div className="lp-type-select" ref={typeDropdownRef}>
+                    <button 
+                      type="button" 
+                      className={`lp-type-btn ${typeDropdownOpen ? "open" : ""}`} 
+                      onClick={() => setTypeDropdownOpen(!typeDropdownOpen)}
+                      aria-label="Suchtyp auswählen"
+                      aria-expanded={typeDropdownOpen}
+                      aria-haspopup="listbox"
+                    >
+                      <span>{getSelectedTypeLabel()}</span>
+                      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    {typeDropdownOpen && (
+                      <div className="lp-type-dropdown" role="listbox" aria-label="Suchtyp">
+                        {searchTypes.map((type) => (
+                          <button
+                            key={type.value}
+                            type="button"
+                            role="option"
+                            aria-selected={searchType === type.value}
+                            className={`lp-type-option ${searchType === type.value ? "active" : ""}`}
+                            onClick={() => { setSearchType(type.value); setTypeDropdownOpen(false); }}
+                          >
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <input 
+                    id="what-search"
+                    type="text" 
+                    className="lp-what-input" 
+                    placeholder="z.B. Beruf, Stichwort, Application ID" 
+                    value={whatSearch} 
+                    onChange={(e) => setWhatSearch(e.target.value)} 
+                  />
                 </div>
-                <input type="text" className="lp-what-input" placeholder="z.B. Beruf, Stichwort, Application ID" value={whatSearch} onChange={(e) => setWhatSearch(e.target.value)} />
               </div>
+
+              <div className="lp-search-field lp-search-where">
+                <label className="lp-search-label" htmlFor="where-search">Wo suchen Sie?</label>
+                <div className="lp-search-inputs">
+                  <input 
+                    id="where-search"
+                    type="text" 
+                    className="lp-where-input" 
+                    placeholder="z.B. Berlin, München, Hamburg" 
+                    value={searchLocation} 
+                    onChange={(e) => handleLocationChange(e.target.value)} 
+                  />
+                  <label htmlFor="radius-select" className="sr-only">Suchradius</label>
+                  <select 
+                    id="radius-select"
+                    className="lp-radius-select"
+                    value={searchRadius}
+                    onChange={(e) => setSearchRadius(parseInt(e.target.value))}
+                    aria-label="Suchradius in Kilometern"
+                  >
+                    {radiusOptions.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {searchLocation && !searchCoords && (
+                  <span className="lp-location-hint" role="status">Ort wird gesucht...</span>
+                )}
+                {searchCoords && (
+                  <span className="lp-location-found" role="status">✓ Umkreissuche aktiv</span>
+                )}
+              </div>
+
+              <button type="submit" className="lp-search-btn">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                Stellen finden
+              </button>
             </div>
-
-            <div className="lp-search-field lp-search-where">
-              <label className="lp-search-label">Wo suchen Sie?</label>
-              <input type="text" className="lp-where-input" placeholder="z.B. Ort, PLZ, Bundesland" value={whereSearch} onChange={(e) => setWhereSearch(e.target.value)} />
-            </div>
-
-            <div className="lp-search-field lp-search-radius">
-              <label className="lp-search-label">Umkreis (km)</label>
-              <input
-                type="number"
-                className="lp-radius-input"
-                value={searchRadius}
-                onChange={(e) => setSearchRadius(Number(e.target.value))}
-                min="1"
-                max="500"
-                step="5"
-              />
-            </div>
-
-            <button type="button" className="lp-locate-btn" onClick={locateUser} disabled={locatingUser} title="Meinen Standort verwenden">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <circle cx="12" cy="12" r="3" />
-                <line x1="12" y1="2" x2="12" y2="6" />
-                <line x1="12" y1="18" x2="12" y2="22" />
-                <line x1="2" y1="12" x2="6" y2="12" />
-                <line x1="18" y1="12" x2="22" y2="12" />
-              </svg>
-              {locatingUser ? "..." : ""}
-            </button>
-
-            <button type="submit" className="lp-search-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              Stellen finden
-            </button>
-          </div>
-        </form>
+          </form>
+        </section>
 
         {/* ========== VIEW TOGGLE ========== */}
-        <div className="lp-view-toggle">
-          <button className={`lp-view-btn ${viewMode === "list" ? "active" : ""}`} onClick={() => setViewMode("list")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="lp-view-toggle" role="tablist" aria-label="Ansicht wechseln">
+          <button 
+            className={`lp-view-btn ${viewMode === "list" ? "active" : ""}`} 
+            onClick={() => setViewMode("list")}
+            role="tab"
+            aria-selected={viewMode === "list"}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
             Liste
           </button>
-          <button className={`lp-view-btn ${viewMode === "map" ? "active" : ""}`} onClick={() => setViewMode("map")}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button 
+            className={`lp-view-btn ${viewMode === "map" ? "active" : ""}`} 
+            onClick={() => setViewMode("map")}
+            role="tab"
+            aria-selected={viewMode === "map"}
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
               <line x1="8" y1="2" x2="8" y2="18" />
               <line x1="16" y1="6" x2="16" y2="22" />
@@ -657,25 +688,25 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
         <div className="lp-content-area">
           {/* Listenansicht */}
           {(viewMode === "list" || viewMode === "split") && (
-            <div className={`lp-list-panel ${viewMode === "split" ? "split" : ""}`}>
+            <section className={`lp-list-panel ${viewMode === "split" ? "split" : ""}`} aria-label="Bewerbungsliste">
               <div className="lp-section-header">
                 <h2 className="lp-section-title">
                   {hasSearched ? "Suchergebnisse" : "Aktuelle Bewerbungen"}
                 </h2>
                 {hasSearched && (
-                  <span className="lp-results-count">{applications.length} Ergebnisse</span>
+                  <span className="lp-results-count" aria-live="polite">{applications.length} Ergebnisse</span>
                 )}
               </div>
 
               {loading && (
-                <div className="lp-loading">
+                <div className="lp-loading" role="status" aria-label="Lade Bewerbungen">
                   <div className="lp-loader" />
                   <p>Suche läuft...</p>
                 </div>
               )}
 
               {error && (
-                <div className="lp-error">
+                <div className="lp-error" role="alert">
                   <p>{error}</p>
                 </div>
               )}
@@ -684,41 +715,48 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
                 <div className="lp-applications">
                   {applications.length > 0 ? (
                     applications.map((app) => (
-                      <div key={app.id} className="lp-card" onClick={() => openModal(app)}>
-                        <h3 className="lp-card-title">{app.title || app.jobName || "Keine Position"}</h3>
-                        <p className="lp-card-company">{app.companyName || "Unbekanntes Unternehmen"}</p>
-                        <div className="lp-card-info-row">
-                          <span className="lp-card-location">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                              <circle cx="12" cy="10" r="3" />
-                            </svg>
-                            {app.postalCode} {app.city || "Standort unbekannt"}
-                            {app.distance !== undefined && app.distance !== null && (
-                              <span className="lp-distance-badge">({formatDistance(app.distance)})</span>
-                            )}
-                          </span>
-                          <span className="lp-card-type">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                              <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                              <line x1="8" y1="21" x2="16" y2="21" />
-                              <line x1="12" y1="17" x2="12" y2="21" />
-                            </svg>
-                            {app.companySector || "Branche nicht angegeben"}
-                          </span>
-                          <button
-                            className={`lp-card-id-btn ${copiedId === app.id ? "copied" : ""}`}
-                            onClick={(e) => { e.stopPropagation(); copyToClipboard(app.applicationId, app.id); }}
-                          >
-                            <span>{app.applicationId?.substring(0, 8) || "N/A"}</span>
-                          </button>
+                      <article 
+                        key={app.id} 
+                        className="lp-card"
+                        aria-label={`${app.title || app.jobName || "Keine Position"} bei ${app.companyName || "Unbekanntes Unternehmen"}`}
+                      >
+                        <div className="lp-card-main" onClick={() => openModal(app)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(app); } }}>
+                          <h3 className="lp-card-title">{app.title || app.jobName || "Keine Position"}</h3>
+                          <p className="lp-card-company">{app.companyName || "Unbekanntes Unternehmen"}</p>
+                          <div className="lp-card-info-row">
+                            <span className="lp-card-location">
+                              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                              </svg>
+                              {app.postalCode} {app.city || "Standort unbekannt"}
+                              {app.distance !== undefined && app.distance !== null && (
+                                <span className="lp-distance-badge">({formatDistance(app.distance)})</span>
+                              )}
+                            </span>
+                            <span className="lp-card-type">
+                              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                              </svg>
+                              {app.companySector || "Branche nicht angegeben"}
+                            </span>
+                          </div>
+                          <div className="lp-card-date-wrapper">
+                            <span className="lp-card-date">
+                              {app.createdAt ? formatRelativeDate(app.createdAt) : "Kein Datum"}
+                            </span>
+                          </div>
                         </div>
-                        <div className="lp-card-date-wrapper">
-                          <span className="lp-card-date">
-                            {app.createdAt ? formatRelativeDate(app.createdAt) : "Kein Datum"}
-                          </span>
-                        </div>
-                      </div>
+                        <button
+                          className={`lp-card-id-btn ${copiedId === app.id ? "copied" : ""}`}
+                          onClick={(e) => { e.stopPropagation(); copyToClipboard(app.applicationId, app.id); }}
+                          aria-label={`Application ID ${app.applicationId?.substring(0, 8) || "N/A"} kopieren`}
+                        >
+                          <span>{app.applicationId?.substring(0, 8) || "N/A"}</span>
+                        </button>
+                      </article>
                     ))
                   ) : (
                     <div className="lp-empty-state">
@@ -727,18 +765,19 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
                   )}
                 </div>
               )}
-            </div>
+            </section>
           )}
 
           {/* Kartenansicht */}
           {(viewMode === "map" || viewMode === "split") && (
-            <div className={`lp-map-panel ${viewMode === "split" ? "split" : ""}`}>
+            <section className={`lp-map-panel ${viewMode === "split" ? "split" : ""}`} aria-label="Kartenansicht">
               <MapContainer
                 key={`map-${viewMode}`}
                 center={[mapCenter.lat, mapCenter.lng]}
                 zoom={mapZoom}
                 className="lp-leaflet-map"
                 scrollWheelZoom={true}
+                aria-label="Interaktive Karte"
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -749,18 +788,21 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
 
                 <MapViewSetter center={[mapCenter.lat, mapCenter.lng]} zoom={mapZoom} />
 
-                {mapBounds && (
+                {/* Suchradius-Kreis */}
+                {searchCoords && (
                   <RadiusCircle
-                    center={[mapCenter.lat, mapCenter.lng]}
-                    radius={estimateRadiusFromBounds(mapBounds)}
+                    center={[searchCoords.lat, searchCoords.lng]}
+                    radius={searchRadius}
                   />
                 )}
 
-                {/* Benutzerstandort */}
-                {userLocation && (
-                  <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
+                {/* Suchzentrum Marker */}
+                {searchCoords && (
+                  <Marker position={[searchCoords.lat, searchCoords.lng]}>
                     <Popup>
-                      <strong>Dein Standort</strong>
+                      <strong>Suchzentrum</strong>
+                      <p>{searchLocation}</p>
+                      <p>Umkreis: {searchRadius} km</p>
                     </Popup>
                   </Marker>
                 )}
@@ -793,56 +835,69 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
               </MapContainer>
 
               {/* Karten-Legende */}
-              <div className="lp-map-legend">
+              <aside className="lp-map-legend" aria-label="Kartenlegende">
                 <div className="lp-legend-item">
-                  <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Bewerbung" width="20" height="32" />
+                  <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Grüner Marker für Bewerbung" width="20" height="32" />
                   <span>Bewerbung</span>
                 </div>
-                {userLocation && (
-                  <div className="lp-legend-item">
-                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png" alt="Dein Standort" width="20" height="32" />
-                    <span>Dein Standort</span>
-                  </div>
+                {searchCoords && (
+                  <>
+                    <div className="lp-legend-item">
+                      <div className="lp-legend-circle" aria-hidden="true" />
+                      <span>Suchradius ({searchRadius} km)</span>
+                    </div>
+                  </>
                 )}
-                <div className="lp-legend-item">
-                  <div className="lp-legend-circle" />
-                  <span>Kartenausschnitt</span>
-                </div>
-              </div>
+              </aside>
 
               {/* Karten-Hinweis */}
-              <div className="lp-map-hint">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <div className="lp-map-hint" role="complementary" aria-label="Kartenhinweis">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="16" x2="12" y2="12" />
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
-                <span>Karte bewegen = neue Suche im sichtbaren Bereich</span>
+                <span>{searchCoords ? `Umkreissuche: ${searchRadius} km um ${searchLocation}` : 'Karte bewegen = neue Suche im sichtbaren Bereich'}</span>
               </div>
-            </div>
+            </section>
           )}
         </div>
-      </div>
+      </main>
 
       {/* ========== DETAIL MODAL ========== */}
       {selectedApplication && (
-        <div className="lp-modal-backdrop" onClick={closeModal}>
+        <div 
+          className="lp-modal-backdrop" 
+          onClick={closeModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
           <div className="lp-modal" ref={modalRef} onClick={(e) => e.stopPropagation()}>
-            <button className="lp-modal-close" onClick={closeModal}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button 
+              className="lp-modal-close" 
+              onClick={closeModal}
+              aria-label="Modal schließen"
+            >
+              <svg 
+                aria-hidden="true" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+              >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
-
             <div className="lp-modal-header">
-              <h2 className="lp-modal-title">{selectedApplication.title || selectedApplication.jobName || "Keine Position"}</h2>
+              <h2 id="modal-title" className="lp-modal-title">{selectedApplication.title || selectedApplication.jobName || "Keine Position"}</h2>
               <p className="lp-modal-company">{selectedApplication.companyName || "Unbekanntes Unternehmen"}</p>
             </div>
 
             <div className="lp-modal-info-grid">
               <div className="lp-modal-info-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
@@ -892,32 +947,35 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
 
             {/* Mini-Map im Modal */}
             {selectedApplication.latitude && selectedApplication.longitude && (
-              <div className="lp-modal-map-thumb">
+              <div className="lp-modal-map-thumb" aria-label="Standort auf Karte">
                 <MapContainer
-                  center={[selectedApplication.latitude, selectedApplication.longitude]}
-                  zoom={15}
-                  className="lp-modal-leaflet-map"
-                  scrollWheelZoom={false}
-                  dragging={false}
-                  zoomControl={false}
+                  key={`map-${viewMode}`}
+                  center={[mapCenter.lat, mapCenter.lng]}
+                  zoom={mapZoom}
+                  className="lp-leaflet-map"
+                  scrollWheelZoom={true}
                 >
                   <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
                   <Marker position={[selectedApplication.latitude, selectedApplication.longitude]} />
-                  {userLocation && (
-                    <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon} />
-                  )}
                 </MapContainer>
               </div>
             )}
 
             <div className="lp-modal-actions">
-              <button className={`lp-modal-action-btn lp-fav-btn ${isFavorited ? "active" : ""}`} onClick={() => setIsFavorited(!isFavorited)}>
+              <button 
+                className={`lp-modal-action-btn lp-fav-btn ${isFavorited ? "active" : ""}`} 
+                onClick={() => setIsFavorited(!isFavorited)}
+                aria-pressed={isFavorited}
+              >
                 {isFavorited ? "Gemerkt" : "Merken"}
               </button>
-              <button className="lp-modal-action-btn lp-apply-btn" onClick={() => { onNavigate?.("application", selectedApplication.applicationId); }}>
+              <button 
+                className="lp-modal-action-btn lp-apply-btn" 
+                onClick={() => { onNavigate?.("application", selectedApplication.applicationId); }}
+              >
                 Jetzt bewerben
               </button>
             </div>

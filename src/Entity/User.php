@@ -3,10 +3,8 @@
 namespace App\Entity;
 
 use App\Enum\ProfileType;
-use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
@@ -23,39 +21,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(type: "guid", unique: true)]
-    private ?string $userId = null;
+    private string $userId;
 
     #[Assert\NotBlank(message: 'Email cannot be empty.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
     #[ORM\Column(length: 255, unique: true)]
-    private ?string $email = null;
+    private string $email;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Password cannot be empty.')]
-    #[Assert\Length(
-        min: 8,
-        minMessage: 'Your password must be at least {{ limit }} characters long.',
-    )]
-    private ?string $password = null;
+    #[Assert\Length(min: 8, minMessage: 'Your password must be at least {{ limit }} characters long.')]
+    private string $password;
 
-    /**
-     * @var array<string>
-     */
+    /** @var array<string> */
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
     #[ORM\Column(enumType: ProfileType::class)]
-    private ?ProfileType $type = null;
+    private ProfileType $type;
 
-    /**
-     * @var Collection<int, Company>
-     */
+    /** @var Collection<int, Company> */
     #[ORM\OneToMany(targetEntity: Company::class, mappedBy: 'user')]
     private Collection $companies;
 
-    /**
-     * @var Collection<int, Application>
-     */
+    /** @var Collection<int, Application> */
     #[ORM\OneToMany(targetEntity: Application::class, mappedBy: 'user')]
     private Collection $applications;
 
@@ -63,80 +52,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->userId = Uuid::v4()->toRfc4122();
         $this->roles = ['ROLE_USER'];
-        $this->documents = new ArrayCollection();
         $this->companies = new ArrayCollection();
         $this->applications = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+    public function getEmail(): string { return $this->email; }
+    public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
+    public function getPassword(): string { return $this->password; }
+    public function setPassword(string $password): static { $this->password = $password; return $this; }
 
-        return $this;
-    }
+    public function getUserId(): string { return $this->userId; }
+    public function setUserId(string $userId): static { $this->userId = $userId; return $this; }
 
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    public function getUserId(): ?string
-    {
-        return $this->userId;
-    }
-
-    public function setUserId(string $userId): static
-    {
-        $this->userId = $userId;
-
-        return $this;
-    }
-
+    /** @return array<string> */
     public function getRoles(): array
     {
         $roles = $this->roles;
         if (!in_array('ROLE_USER', $roles, true)) {
             $roles[] = 'ROLE_USER';
         }
-        
         return array_unique($roles);
     }
 
+    /** @param array<string> $roles */
     public function setRoles(array $roles): static
     {
         if (!in_array('ROLE_USER', $roles, true)) {
             $roles[] = 'ROLE_USER';
         }
-        
         $this->roles = array_unique($roles);
         return $this;
     }
@@ -146,60 +92,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!in_array($role, $this->roles, true)) {
             $this->roles[] = $role;
         }
-        
         return $this;
     }
 
     public function removeRole(string $role): static
     {
-
         if ($role === 'ROLE_USER') {
             return $this;
         }
-        
         $key = array_search($role, $this->roles, true);
         if ($key !== false) {
             unset($this->roles[$key]);
             $this->roles = array_values($this->roles);
         }
-        
         return $this;
     }
 
-    public function eraseCredentials(): void
-    {
-    }
+    public function eraseCredentials(): void {}
 
-    public function getUserIdentifier(): string
-    {
-        return $this->email;
-    }
+    public function getUserIdentifier(): string { return $this->email; }
 
-    public function getType(): ?ProfileType
-    {
-        return $this->type;
-    }
+    public function getType(): ProfileType { return $this->type; }
+    public function setType(ProfileType $type): static { $this->type = $type; return $this; }
 
-    public function setType(ProfileType $type): static
-    {
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Company>
-     */
-    public function getCompanies(): Collection
-    {
-        return $this->companies;
-    }
+    /** @return Collection<int, Company> */
+    public function getCompanies(): Collection { return $this->companies; }
 
     public function addCompany(Company $company): static
     {
         if (!$this->companies->contains($company)) {
             $this->companies->add($company);
-            $company->setUser($this);  // Jetzt korrekt
+            $company->setUser($this);
         }
         return $this;
     }
@@ -207,22 +130,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeCompany(Company $company): static
     {
         if ($this->companies->removeElement($company)) {
-            // set the owning side to null (unless already changed)
             if ($company->getUser() === $this) {
                 $company->setUser(null);
             }
         }
-
         return $this;
     }
 
-    /**
-     * @return Collection<int, Application>
-     */
-    public function getApplications(): Collection
-    {
-        return $this->applications;
-    }
+    /** @return Collection<int, Application> */
+    public function getApplications(): Collection { return $this->applications; }
 
     public function addApplication(Application $application): static
     {
@@ -230,19 +146,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->applications->add($application);
             $application->setUser($this);
         }
-
         return $this;
     }
 
     public function removeApplication(Application $application): static
     {
         if ($this->applications->removeElement($application)) {
-            // set the owning side to null (unless already changed)
             if ($application->getUser() === $this) {
                 $application->setUser(null);
             }
         }
-
         return $this;
     }
 }

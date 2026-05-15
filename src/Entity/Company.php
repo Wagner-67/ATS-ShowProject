@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Repository\CompanyRepository;
 use DateTimeImmutable;
 use DateTimeZone;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -20,42 +19,42 @@ class Company
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Name cannot be empty.')]
-    private ?string $CompanyName = null;
+    private string $CompanyName;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Sector cannot be empty.')]
-    private ?string $CompanySector = null;
+    private string $CompanySector;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: 'Job cannot be empty.')]
-    private ?string $JobName = null;
+    private string $JobName;
 
     #[ORM\Column(type: "guid", unique: true)]
-    private ?string $applicationId = null;
+    private string $applicationId;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
+    private \DateTimeImmutable $created_at;
 
-   #[ORM\ManyToOne(inversedBy: 'companies')]
+    #[ORM\ManyToOne(inversedBy: 'companies')]
     private ?User $user = null;
 
-    #[ORM\Column(type: "text", nullable: true)] 
+    #[ORM\Column(type: "text", nullable: true)]
     private ?string $markdown = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $street = null;
+    private string $street;
 
     #[ORM\Column(length: 255)]
-    private ?string $houseNumber = null;
+    private string $houseNumber;
 
     #[ORM\Column(length: 255)]
-    private ?string $city = null;
+    private string $city;
 
     #[ORM\Column(length: 255)]
-    private ?string $postalCode = null;
+    private string $postalCode;
 
     #[ORM\Column(length: 255)]
-    private ?string $titel = null;
+    private string $titel;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $lat = null;
@@ -69,176 +68,47 @@ class Company
         $this->created_at = new DateTimeImmutable('now', new DateTimeZone('Europe/Berlin'));
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getCompanyName(): ?string
-    {
-        return $this->CompanyName;
-    }
+    public function getCompanyName(): string { return $this->CompanyName; }
+    public function setCompanyName(string $CompanyName): static { $this->CompanyName = $CompanyName; return $this; }
 
-    public function setCompanyName(string $CompanyName): static
-    {
-        $this->CompanyName = $CompanyName;
+    public function getCompanySector(): string { return $this->CompanySector; }
+    public function setCompanySector(string $CompanySector): static { $this->CompanySector = $CompanySector; return $this; }
 
-        return $this;
-    }
+    public function getJobName(): string { return $this->JobName; }
+    public function setJobName(string $JobName): static { $this->JobName = $JobName; return $this; }
 
-    public function getCompanySector(): ?string
-    {
-        return $this->CompanySector;
-    }
+    public function getApplicationId(): string { return $this->applicationId; }
+    public function setApplicationId(string $applicationId): static { $this->applicationId = $applicationId; return $this; }
 
-    public function setCompanySector(string $CompanySector): static
-    {
-        $this->CompanySector = $CompanySector;
+    public function getCreatedAt(): \DateTimeImmutable { return $this->created_at; }
+    public function setCreatedAt(\DateTimeImmutable $created_at): static { $this->created_at = $created_at; return $this; }
 
-        return $this;
-    }
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): static { $this->user = $user; return $this; }
 
-    public function getJobName(): ?string
-    {
-        return $this->JobName;
-    }
+    public function getMarkdown(): ?string { return $this->markdown; }
+    public function setMarkdown(string $markdown): static { $this->markdown = $markdown; return $this; }
 
-    public function setJobName(string $JobName): static
-    {
-        $this->JobName = $JobName;
+    public function getStreet(): string { return $this->street; }
+    public function setStreet(string $street): static { $this->street = $street; return $this; }
 
-        return $this;
-    }
+    public function getHouseNumber(): string { return $this->houseNumber; }
+    public function setHouseNumber(string $houseNumber): static { $this->houseNumber = $houseNumber; return $this; }
 
-    public function getApplicationId(): ?string
-    {
-        return $this->applicationId;
-    }
+    public function getCity(): string { return $this->city; }
+    public function setCity(string $city): static { $this->city = $city; return $this; }
 
-    public function setApplicationId(string $applicationId): static
-    {
-        $this->applicationId = $applicationId;
+    public function getPostalCode(): string { return $this->postalCode; }
+    public function setPostalCode(string $postalCode): static { $this->postalCode = $postalCode; return $this; }
 
-        return $this;
-    }
+    public function getTitel(): string { return $this->titel; }
+    public function setTitel(string $titel): static { $this->titel = $titel; return $this; }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
+    public function getLat(): ?string { return $this->lat; }
+    public function setLat(?string $lat): static { $this->lat = $lat; return $this; }
 
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
-
-    public function getUser(): ?User
-    {
-        return $this->user;
-    }
-
-    public function setUser(?User $user): static
-    {
-        $this->user = $user;
-
-        return $this;
-    }
-
-    public function getMarkdown(): ?string
-    {
-        return $this->markdown;
-    }
-
-    public function setMarkdown(string $markdown): static
-    {
-        $this->markdown = $markdown;
-
-        return $this;
-    }
-
-    public function getStreet(): ?string
-    {
-        return $this->street;
-    }
-
-    public function setStreet(string $street): static
-    {
-        $this->street = $street;
-
-        return $this;
-    }
-
-    public function getHouseNumber(): ?string
-    {
-        return $this->houseNumber;
-    }
-
-    public function setHouseNumber(string $houseNumber): static
-    {
-        $this->houseNumber = $houseNumber;
-
-        return $this;
-    }
-
-    public function getCity(): ?string
-    {
-        return $this->city;
-    }
-
-    public function setCity(string $city): static
-    {
-        $this->city = $city;
-
-        return $this;
-    }
-
-    public function getPostalCode(): ?string
-    {
-        return $this->postalCode;
-    }
-
-    public function setPostalCode(string $postalCode): static
-    {
-        $this->postalCode = $postalCode;
-
-        return $this;
-    }
-
-    public function getTitel(): ?string
-    {
-        return $this->titel;
-    }
-
-    public function setTitel(string $titel): static
-    {
-        $this->titel = $titel;
-
-        return $this;
-    }
-
-    public function getLat(): ?string
-    {
-        return $this->lat;
-    }
-
-    public function setLat(?string $lat): static
-    {
-        $this->lat = $lat;
-
-        return $this;
-    }
-
-    public function getLng(): ?string
-    {
-        return $this->lng;
-    }
-
-    public function setLng(?string $lng): static
-    {
-        $this->lng = $lng;
-
-        return $this;
-    }
+    public function getLng(): ?string { return $this->lng; }
+    public function setLng(?string $lng): static { $this->lng = $lng; return $this; }
 }
