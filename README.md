@@ -161,3 +161,78 @@ Services:
   frontend:   Node 20, Vue.js Dev Server (Port 5173, Vite HMR)
   db:         MariaDB 10.4.32 (Port 3307)
   phpmyadmin: Datenbank-Admin (Port 8081)
+
+## 🧪 Code-Qualität & Testing
+
+### Statische Code-Analyse mit PHPStan
+
+Das gesamte Projekt wurde mit **PHPStan Level 6** analysiert und ist **vollständig fehlerfrei**.
+
+#### Verwendete Extensions
+
+- `phpstan/phpstan-doctrine` – Doctrine-spezifische Typ-Prüfung
+- `phpstan/phpstan-symfony` – Symfony-spezifische Analyse
+- `phpstan/extension-installer` – Automatische Extension-Erkennung
+
+#### Ausführung
+
+```bash
+php -d memory_limit=512M vendor/bin/phpstan analyse
+
+parameters:
+    level: 6
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+
+    treatPhpDocTypesAsCertain: false
+
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+
+        Geprüfte Aspekte
+✅ Doctrine Entity Column-Type Konsistenz (nullable vs. non-nullable)
+✅ Collection Generics (Collection<int, UserPdfs>)
+✅ Array-Shape-Dokumentation für Service-Methoden
+✅ Parameter-/Return-Type-Konsistenz über Service- und Controller-Layer
+✅ Korrekte Parameter-Reihenfolge (required before optional)
+✅ instanceof-Checks für getUser()-Rückgaben
+✅ Unused Properties & Methods
+✅ Deprecated PHP 8.1 Features
+♿ Accessibility & Performance
+Accessibility-Testing mit axe DevTools
+
+Die gesamte Benutzeroberfläche wurde mit axe DevTools auf Barrierefreiheit geprüft.
+
+Geprüfte Kriterien
+✅ Farbkontraste nach WCAG AA
+✅ Vollständige Tastatur-Navigation aller interaktiven Elemente
+✅ Screenreader-Unterstützung durch ARIA-Labels & Landmarks
+✅ Logische und sichtbare Fokus-Reihenfolge
+✅ Formularfehler programmatisch mit Eingabefeldern verknüpft
+✅ alt-Attribute für Bilder und Icons
+✅ Semantische HTML-Struktur (<nav>, <main>, <header>)
+✅ Lightbox/Modal mit Tastaturnavigation & Fokus-Management
+
+🚀 Lighthouse Scores
+
+Das Projekt erreicht in allen Kategorien mindestens 90 von 100 Punkten.
+
+| Kategorie        | Mindest-Score | Status |
+| ---------------- | ------------- | ------ |
+| 🚀 Performance   | > 90          | ✅      |
+| ♿ Accessibility  | > 90          | ✅      |
+| ✅ Best Practices | > 90          | ✅      |
+| 🔍 SEO           | > 90          | ✅      |
+
+📋 Qualitätssicherung im Überblick
+
+| Tool              | Bereich                | Ziel                              |
+| ----------------- | ---------------------- | --------------------------------- |
+| PHPStan Level 6   | Statische Code-Analyse | Typ-Sicherheit & Fehlervermeidung |
+| Symfony Validator | Input-Validierung      | Serverseitige Geschäftsregeln     |
+| Magic-Byte-Check  | Datei-Upload           | Sicherheit vor manipulierten PDFs |
+| axe DevTools      | Accessibility          | WCAG-Konformität                  |
+| Lighthouse        | Performance & SEO      | User Experience & Auffindbarkeit  |
