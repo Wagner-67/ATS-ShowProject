@@ -218,14 +218,8 @@ Geprüfte Kriterien
 
 🚀 Lighthouse Scores
 
-Das Projekt erreicht in allen Kategorien mindestens 90 von 100 Punkten.
+Das Projekt erreicht in den SEO und Barrierefreiheit Kategorien mindestens 90 von 100 Punkten.
 
-| Kategorie        | Mindest-Score | Status |
-| ---------------- | ------------- | ------ |
-| 🚀 Performance   | > 90          | ✅      |
-| ♿ Accessibility  | > 90          | ✅      |
-| ✅ Best Practices | > 90          | ✅      |
-| 🔍 SEO           | > 90          | ✅      |
 
 📋 Qualitätssicherung im Überblick
 
