@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { Helmet } from 'react-helmet-async';
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./Landingpage.css";
@@ -493,6 +494,11 @@ function Landingpage({ isLoggedIn, onGetStarted, onLogout, onNavigate }) {
   const applicationsWithCoords = applications.filter((a) => a.latitude && a.longitude);
 
 return (
+      <>
+      <Helmet>
+        <title>Landing Page</title>
+        <meta name="description" content="Willkommen auf der Startseite. Hier kannst du nach stellen suchen und dich Bewerben sowie Anmelden/Registrieren." />
+      </Helmet>
     <div className="lp-container">
       {/* ========== NAVIGATION ========== */}
       <nav className="lp-nav" role="navigation" aria-label="Hauptnavigation">
@@ -988,6 +994,7 @@ return (
         </div>
       )}
     </div>
+    </>
   );
 }
 
