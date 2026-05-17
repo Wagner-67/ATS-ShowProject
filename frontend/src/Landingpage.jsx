@@ -901,23 +901,29 @@ return (
               <p className="lp-modal-company">{selectedApplication.companyName || "Unbekanntes Unternehmen"}</p>
             </div>
 
-            <div className="lp-modal-info-grid">
-              <div className="lp-modal-info-item">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <div>
-                  <span className="lp-modal-info-label">Adresse</span>
+              <div className="lp-modal-info-grid">
+                <div className="lp-modal-info-item">
+                  <div className="lp-modal-info-header">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span className="lp-modal-info-label">Adresse</span>
+                  </div>
                   <span className="lp-modal-info-value">
                     {selectedApplication.street} {selectedApplication.houseNumber}
                   </span>
                 </div>
-              </div>
 
-              <div className="lp-modal-info-item">
-                <div>
-                  <span className="lp-modal-info-label">PLZ / Ort</span>
+                <div className="lp-modal-info-item">
+                  <div className="lp-modal-info-header">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                    <span className="lp-modal-info-label">PLZ / Ort</span>
+                  </div>
                   <span className="lp-modal-info-value">
                     {selectedApplication.postalCode} {selectedApplication.city || "Unbekannt"}
                     {selectedApplication.distance !== undefined && selectedApplication.distance !== null && (
@@ -925,31 +931,43 @@ return (
                     )}
                   </span>
                 </div>
-              </div>
 
-              <div className="lp-modal-info-item">
-                <div>
-                  <span className="lp-modal-info-label">Branche</span>
+                <div className="lp-modal-info-item">
+                  <div className="lp-modal-info-header">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <span className="lp-modal-info-label">Branche</span>
+                  </div>
                   <span className="lp-modal-info-value">{selectedApplication.companySector || "Nicht angegeben"}</span>
                 </div>
-              </div>
 
-              <div className="lp-modal-info-item">
-                <div>
-                  <span className="lp-modal-info-label">Application ID</span>
+                <div className="lp-modal-info-item">
+                  <div className="lp-modal-info-header">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                    <span className="lp-modal-info-label">Application ID</span>
+                  </div>
                   <span className="lp-modal-info-value lp-modal-id">{selectedApplication.applicationId || "N/A"}</span>
                 </div>
-              </div>
 
-              <div className="lp-modal-info-item">
-                <div>
-                  <span className="lp-modal-info-label">Erstellt am</span>
+                <div className="lp-modal-info-item">
+                  <div className="lp-modal-info-header">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    <span className="lp-modal-info-label">Erstellt am</span>
+                  </div>
                   <span className="lp-modal-info-value">
                     {selectedApplication.createdAt ? formatDate(selectedApplication.createdAt) : "Kein Datum"}
                   </span>
                 </div>
               </div>
-            </div>
 
             {/* Mini-Map im Modal */}
             {selectedApplication.latitude && selectedApplication.longitude && (

@@ -1,9 +1,3 @@
-/* ============================================================
-   APPLICATION FORM – Barrierefrei & optimiert
-   Prefix: ap-
-   ============================================================ */
-
-/* ---------- DESIGN TOKENS ---------- */
 :root {
   --bg: #080a0f;
   --surface: rgba(255, 255, 255, 0.04);
@@ -21,7 +15,6 @@
   --focus-ring: 0 0 0 3px rgba(232, 255, 90, 0.5);
 }
 
-/* ---------- RESET ---------- */
 *,
 *::before,
 *::after {
@@ -42,7 +35,6 @@ body {
   min-height: 100vh;
 }
 
-/* ---------- CONTAINER ---------- */
 .ap-container {
   min-height: 100vh;
   background: var(--bg);
@@ -51,7 +43,6 @@ body {
     radial-gradient(ellipse 30% 30% at 80% 60%, rgba(100, 160, 255, 0.03) 0%, transparent 50%);
 }
 
-/* ========== NAVIGATION ========== */
 .ap-nav {
   position: fixed;
   top: 0;
@@ -116,7 +107,31 @@ body {
 .ap-main {
   max-width: 700px;
   margin: 0 auto;
-  padding: 100px clamp(16px, 4vw, 24px) 80px;
+  padding: 80px clamp(16px, 4vw, 24px) 40px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.03);
+}
+
+.ap-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ap-main::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.ap-main::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.ap-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* ========== FORM ========== */
@@ -506,11 +521,13 @@ select.ap-input:focus {
   }
 
   .ap-main {
-    padding: 80px 12px 60px;
+    padding: 80px 12px 40px;
+    height: calc(100vh - 60px);
   }
 
   .ap-form {
     padding: 20px 16px;
+    margin-bottom: 24px;
   }
 
   .ap-form-row {

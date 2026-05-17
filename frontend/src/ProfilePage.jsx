@@ -75,7 +75,7 @@ function ProfilePage({ onBack }) {
     setError(null);
 
     try {
-      const res = await fetch("/api/company/application", {
+      const res = await fetch("/api/company/applications", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`
         }

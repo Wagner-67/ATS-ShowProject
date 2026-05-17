@@ -152,10 +152,9 @@ final class SearchService
         $radiusKm = !empty($data['radius']) ? (float) $data['radius'] : null;
 
         if ($userLat !== null && $userLng !== null && $radiusKm !== null) {
-            // Verwende die tatsächlichen Feldnamen aus der Entity
-            // Versuche zuerst die Getter-Methoden zu finden
-            $latField = 'c.lat'; // oder 'c.latitude' - je nach Entity-Definition
-            $lngField = 'c.lng'; // oder 'c.longitude' - je nach Entity-Definition
+
+            $latField = 'c.lat';
+            $lngField = 'c.lng';
             
             $latDelta = rad2deg($radiusKm / self::EARTH_RADIUS_KM);
             $lngDelta = rad2deg($radiusKm / (self::EARTH_RADIUS_KM * cos(deg2rad($userLat))));
