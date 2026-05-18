@@ -140,7 +140,7 @@ final class CompanyService
             ];
         }
 
-        $company->setTitel($data['title'] ?? $company->getTitel());
+        $company->setTitel($data['title'] ?? $company->getTitel()); 
         $company->setCompanyName($data['companyName'] ?? $company->getCompanyName());
         $company->setCompanySector($data['companySector'] ?? $company->getCompanySector());
         $company->setStreet($data['street'] ?? $company->getStreet());

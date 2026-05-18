@@ -20,14 +20,12 @@ class CompanyApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function create(Request $request): JsonResponse
     {
-
         $user = $this->getUser();
-        
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
 
-        $data = $request->request->all();
+        $data = json_decode($request->getContent(), true) ?? [];
         $result = $this->companyService->createCompany($data, $user);
         return new JsonResponse($result['body'], $result['status']);
     }
@@ -51,14 +49,12 @@ class CompanyApplicationController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function update(Request $request, string $id): JsonResponse
     {
-
         $user = $this->getUser();
-        
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException('Invalid user type');
         }
 
-        $data = $request->request->all();
+        $data = json_decode($request->getContent(), true) ?? [];
         $result = $this->companyService->updateCompany($data, $user, $id);
         return new JsonResponse($result['body'], $result['status']);
     }
@@ -104,7 +100,7 @@ class CompanyApplicationController extends AbstractController
             throw $this->createAccessDeniedException('Invalid user type');
         }
 
-        $data = $request->request->all();
+        $data = json_decode($request->getContent(), true) ?? [];
         $result = $this->companyService->changeStatus($id, $data, $user);
         return new JsonResponse($result['body'], $result['status']);
     }

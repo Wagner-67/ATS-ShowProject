@@ -54,7 +54,7 @@ class Company
     private string $postalCode;
 
     #[ORM\Column(length: 255)]
-    private string $titel;
+    private ?string $titel = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $lat = null;
@@ -104,7 +104,11 @@ class Company
     public function setPostalCode(string $postalCode): static { $this->postalCode = $postalCode; return $this; }
 
     public function getTitel(): string { return $this->titel; }
-    public function setTitel(string $titel): static { $this->titel = $titel; return $this; }
+    public function setTitel(?string $titel): static 
+    {
+        $this->titel = $titel;
+        return $this;
+    }
 
     public function getLat(): ?string { return $this->lat; }
     public function setLat(?string $lat): static { $this->lat = $lat; return $this; }

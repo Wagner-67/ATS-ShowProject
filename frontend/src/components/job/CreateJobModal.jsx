@@ -71,8 +71,12 @@ export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
   };
 
   const handleSubmit = () => {
-    onSubmit(form, editData?.id);
-    onClose();
+      if (!form.title) {
+          alert("Title ist erforderlich");
+          return;
+      }
+      onSubmit(form, editData?.id);
+      onClose();
   };
 
   return (
@@ -82,10 +86,10 @@ export default function CreateJobModal({ open, onClose, onSubmit, editData }) {
         <h2>{isEditing ? "Job bearbeiten" : "Job erstellen"}</h2>
 
         <input
-          name="title"
-          placeholder="Title"
-          value={form.title}
-          onChange={handleChange}
+            name="title"
+            placeholder="Title"
+            value={form.title}
+            onChange={handleChange}
         />
 
         <input

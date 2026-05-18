@@ -276,8 +276,8 @@ function ProfilePage({ onBack }) {
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
-      const res = await fetch(`/api/company/status/${applicationId}`, {
-        method: "POST",
+    const res = await fetch(`/api/company/application/${applicationId}/status`, {
+      method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`
