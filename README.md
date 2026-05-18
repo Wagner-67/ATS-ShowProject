@@ -230,3 +230,5 @@ Das Projekt erreicht in den SEO und Barrierefreiheit Kategorien mindestens 90 vo
 | Magic-Byte-Check  | Datei-Upload           | Sicherheit vor manipulierten PDFs |
 | axe DevTools      | Accessibility          | WCAG-Konformität                  |
 | Lighthouse        | Performance & SEO      | User Experience & Auffindbarkeit  |
+
+Rate Limiting listener via clientIp
