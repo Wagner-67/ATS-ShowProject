@@ -41,10 +41,6 @@ final class ApplicationController extends AbstractController
         });
         
         $user = $this->getUser();
-
-        if (!$user instanceof User) {
-            throw new \LogicException('User must be instance of App\Entity\User');
-        }
         
         $result = $applicationService->createApplication($data, $id, $user, $files);
         

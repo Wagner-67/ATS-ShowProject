@@ -2,12 +2,12 @@ framework:
   rate_limiter:
     anonymous_api:
       policy: fixed_window
-      limit: 3
+      limit: 100
       interval: '1 minute'
       cache_pool: cache.app
 
     authenticated_api:
       policy: sliding_window
-      limit: 3
+      limit: 100
       interval: '1 minute'
       cache_pool: cache.app
