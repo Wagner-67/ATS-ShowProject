@@ -66,7 +66,6 @@ Application (1)──< UserPdfs (n)
 - Automatisches `created_at` in Europe/Berlin
 
 **Application**
-- Enum `Salutation`: Herr, Frau, Divers
 - Enum `StatusType`: pending → review → approved/rejected
 - PDF-Dokumente als `UserPdfs`-Collection
 
